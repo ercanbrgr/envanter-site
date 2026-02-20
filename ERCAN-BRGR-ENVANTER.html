@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Ercan BRGR - Envanter</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#e85d04">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="BRGR Envanter">
+<link rel="apple-touch-icon" href="icon.svg">
+<style>
+:root { --orange:#e85d04; --dark:#1a1a2e; --mid:#16213e; --deep:#0f3460; }
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5;min-height:100vh}
+
+/* ===== LOGIN ===== */
+#login-screen{
+  display:flex;align-items:center;justify-content:center;
+  min-height:100vh;background:linear-gradient(135deg,var(--dark) 0%,var(--deep) 100%);
+  padding:20px;
+}
+.login-card{
+  background:#fff;border-radius:20px;padding:40px 32px;width:100%;max-width:360px;
+  text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3);
+}
+.login-logo{font-size:48px;font-weight:900;color:var(--orange);letter-spacing:3px;margin-bottom:4px}
+.login-sub{font-size:12px;color:#aaa;margin-bottom:28px;letter-spacing:1px;text-transform:uppercase}
+.login-title{font-size:16px;color:#333;margin-bottom:20px;font-weight:600}
+.pin-dots{display:flex;gap:12px;justify-content:center;margin-bottom:24px}
+.pin-dot{
+  width:18px;height:18px;border-radius:50%;border:2px solid #ddd;
+  background:#fff;transition:all 0.2s;
+}
+.pin-dot.filled{background:var(--orange);border-color:var(--orange)}
+.pin-dot.error{background:#e74c3c;border-color:#e74c3c}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.pin-btn{
+  padding:18px;font-size:20px;font-weight:700;border:2px solid #eee;
+  border-radius:12px;background:#fff;cursor:pointer;color:var(--dark);
+  transition:all 0.1s;user-select:none;
+}
+.pin-btn:active,.pin-btn:hover{background:var(--orange);color:#fff;border-color:var(--orange);transform:scale(0.96)}
+.pin-del{background:#f8f8f8;color:#888;font-size:16px}
+.pin-error{color:#e74c3c;font-size:13px;min-height:20px;margin-top:4px}
+.pin-hint{font-size:11px;color:#bbb;margin-top:12px}
+
+/* ===== APP ===== */
+#app{display:none;min-height:100vh;flex-direction:column}
+
+/* TOP BAR */
+#topbar{
+  background:var(--dark);color:#fff;padding:12px 16px;
+  display:flex;align-items:center;gap:10px;
+  position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,0.3);
+}
+#menu-btn{
+  background:none;border:none;color:#fff;font-size:22px;cursor:pointer;
+  padding:4px 8px;border-radius:6px;line-height:1;
+}
+#menu-btn:hover{background:rgba(255,255,255,0.1)}
+#topbar-title{flex:1;font-size:15px;font-weight:700;color:#fff;cursor:pointer;min-width:0}
+#topbar-title span{display:block;font-size:10px;color:var(--orange);font-weight:400}
+#topbar-birim{
+  background:rgba(255,255,255,0.1);border:none;color:#fff;
+  padding:6px 10px;border-radius:8px;font-size:13px;font-weight:600;
+  cursor:pointer;outline:none;
+}
+#topbar-birim option{color:var(--dark);background:#fff}
+.top-btn{
+  padding:7px 12px;border-radius:8px;border:none;cursor:pointer;
+  font-size:12px;font-weight:700;white-space:nowrap;
+}
+.top-btn-add{background:var(--orange);color:#fff}
+.top-btn-add:hover{background:#c44d02}
+.top-btn-menu{background:rgba(255,255,255,0.1);color:#fff}
+
+/* DRAWER */
+#drawer-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;
+}
+#drawer-overlay.open{display:block}
+#drawer{
+  position:fixed;left:-280px;top:0;bottom:0;width:280px;
+  background:var(--dark);z-index:201;transition:left 0.3s ease;
+  display:flex;flex-direction:column;overflow:hidden;
+}
+#drawer.open{left:0}
+#drawer-header{
+  background:var(--orange);padding:20px 16px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+#drawer-header .brand{font-size:20px;font-weight:900;color:#fff;letter-spacing:2px}
+#drawer-close{background:none;border:none;color:#fff;font-size:20px;cursor:pointer}
+#drawer-search{padding:12px;background:var(--mid)}
+#drawer-search input{
+  width:100%;padding:8px 12px;border-radius:8px;border:none;
+  background:var(--deep);color:#fff;font-size:13px;outline:none;
+}
+#drawer-search input::placeholder{color:#888}
+#product-list{flex:1;overflow-y:auto;padding:6px 0}
+#product-list::-webkit-scrollbar{width:3px}
+#product-list::-webkit-scrollbar-thumb{background:var(--orange);border-radius:3px}
+.product-item{
+  padding:12px 16px;cursor:pointer;font-size:13px;
+  border-left:3px solid transparent;display:flex;align-items:center;gap:8px;
+  color:#ccc;transition:all 0.15s;
+}
+.product-item:hover,.product-item.active{
+  background:var(--deep);border-left-color:var(--orange);color:#fff;
+}
+.product-item .num{font-size:10px;color:#666;min-width:20px}
+.product-item .pname{flex:1;font-size:13px}
+.product-item .badge{
+  font-size:10px;background:var(--orange);color:#fff;
+  border-radius:10px;padding:1px 7px;
+}
+
+/* CONTENT */
+#content{flex:1;padding:12px;overflow-x:hidden}
+
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px}
+@media(min-width:600px){.stats-row{grid-template-columns:repeat(4,1fr)}}
+.stat-card{
+  background:#fff;border-radius:12px;padding:12px 14px;
+  border-left:4px solid var(--orange);box-shadow:0 1px 4px rgba(0,0,0,0.06);
+}
+.stat-card .sl{font-size:10px;color:#999;font-weight:600;text-transform:uppercase}
+.stat-card .sv{font-size:22px;font-weight:800;color:var(--dark)}
+.stat-card.green{border-left-color:#2ecc71}.stat-card.green .sv{color:#27ae60}
+.stat-card.red{border-left-color:#e74c3c}.stat-card.red .sv{color:#e74c3c}
+.stat-card.orange .sv{color:var(--orange)}
+
+/* ADD FORM */
+.add-card{
+  background:#fff;border-radius:12px;padding:16px;margin-bottom:12px;
+  border-top:3px solid var(--orange);box-shadow:0 1px 4px rgba(0,0,0,0.06);
+}
+.add-card h3{font-size:14px;color:var(--dark);margin-bottom:14px;font-weight:700}
+.form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media(min-width:500px){.form-grid{grid-template-columns:repeat(3,1fr)}}
+@media(min-width:768px){.form-grid{grid-template-columns:repeat(5,1fr)}}
+.ff{display:flex;flex-direction:column;gap:4px}
+.ff label{font-size:10px;font-weight:700;color:#999;text-transform:uppercase}
+.ff input,.ff select{
+  padding:10px;border:2px solid #eee;border-radius:8px;
+  font-size:14px;outline:none;transition:border-color 0.15s;width:100%;
+}
+.ff input:focus{border-color:var(--orange)}
+.ff input.calc{background:#f8f8f8;font-weight:700;border-color:#e0e0e0;cursor:default}
+.ff input.fpos{background:#eafaf1;color:#27ae60;font-weight:800;border-color:#a9dfbf}
+.ff input.fneg{background:#fdf2f2;color:#e74c3c;font-weight:800;border-color:#f5b7b1}
+.form-actions{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap}
+.btn{padding:10px 18px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:700;transition:all 0.15s}
+.btn-primary{background:var(--orange);color:#fff}
+.btn-primary:hover{background:#c44d02}
+.btn-outline{background:transparent;border:2px solid var(--orange);color:var(--orange)}
+.btn-outline:hover{background:var(--orange);color:#fff}
+.btn-sm{padding:6px 12px;font-size:12px}
+
+/* TABLE - mobile scroll */
+.table-card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.06)}
+.table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;font-size:12px;min-width:700px}
+thead tr{background:var(--dark);color:#fff}
+thead th{
+  padding:10px 8px;text-align:center;font-size:11px;font-weight:600;
+  white-space:nowrap;border-right:1px solid var(--deep);
+}
+tbody tr{border-bottom:1px solid #f5f5f5;transition:background 0.1s}
+tbody tr:hover{background:#fef9f5}
+tbody td{padding:6px 6px;text-align:center;border-right:1px solid #f5f5f5}
+tbody td input{
+  width:100%;border:1px solid transparent;border-radius:4px;
+  padding:5px 4px;text-align:center;font-size:12px;background:transparent;outline:none;
+}
+tbody td input:focus{border-color:var(--orange);background:#fff8f2}
+td.calc{background:#f8f8f8;font-weight:700}
+td.fp{background:#eafaf1;color:#27ae60;font-weight:800}
+td.fn{background:#fdf2f2;color:#e74c3c;font-weight:800}
+td.fz{background:#f5f5f5;color:#999;font-weight:700}
+.del-btn{background:none;border:none;cursor:pointer;color:#ddd;font-size:13px;padding:3px 7px;border-radius:4px}
+.del-btn:hover{color:#e74c3c;background:#fdf2f2}
+
+/* EMPTY */
+.empty{text-align:center;padding:48px 20px;color:#bbb}
+.empty .ico{font-size:48px;margin-bottom:12px}
+.empty p{font-size:14px}
+
+/* MODAL */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:300;align-items:center;justify-content:center;padding:20px}
+.overlay.show{display:flex}
+.modal{background:#fff;border-radius:16px;padding:24px;width:100%;max-width:340px;box-shadow:0 10px 40px rgba(0,0,0,0.2)}
+.modal h3{font-size:16px;margin-bottom:16px;color:var(--dark)}
+.modal input{width:100%;padding:12px;border:2px solid #eee;border-radius:8px;font-size:15px;outline:none;margin-bottom:14px}
+.modal input:focus{border-color:var(--orange)}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end}
+
+/* BOTTOM NAV (mobile) */
+#bottom-nav{
+  display:none;position:fixed;bottom:0;left:0;right:0;
+  background:#fff;border-top:1px solid #eee;padding:8px 16px;
+  box-shadow:0 -2px 10px rgba(0,0,0,0.08);z-index:100;
+}
+@media(max-width:599px){#bottom-nav{display:flex;gap:8px;justify-content:center}}
+#content{padding-bottom:80px}
+@media(min-width:600px){#content{padding-bottom:12px}}
+
+/* INSTALL BAR */
+#install-bar{
+  display:none;position:fixed;bottom:0;left:0;right:0;
+  background:var(--orange);color:#fff;padding:12px 16px;
+  align-items:center;justify-content:space-between;z-index:500;
+  font-size:13px;box-shadow:0 -2px 10px rgba(0,0,0,0.2);
+}
+#install-bar.show{display:flex}
+
+@media print{
+  #login-screen,#topbar,#drawer,#drawer-overlay,#bottom-nav,#install-bar,.add-card,.del-btn,.top-btn{display:none!important}
+  .stats-row{display:none}
+  #app{display:block!important}
+  .table-card{box-shadow:none}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== LOGIN ===== -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">BRGR</div>
+    <div class="login-sub">Ercan BRGR Envanter</div>
+    <div class="login-title" id="login-title">Erişim Kodu</div>
+    <div class="pin-dots" id="pin-dots">
+      <div class="pin-dot" id="d0"></div>
+      <div class="pin-dot" id="d1"></div>
+      <div class="pin-dot" id="d2"></div>
+      <div class="pin-dot" id="d3"></div>
+    </div>
+    <div class="pin-pad">
+      <button class="pin-btn" onclick="pinPress('1')">1</button>
+      <button class="pin-btn" onclick="pinPress('2')">2</button>
+      <button class="pin-btn" onclick="pinPress('3')">3</button>
+      <button class="pin-btn" onclick="pinPress('4')">4</button>
+      <button class="pin-btn" onclick="pinPress('5')">5</button>
+      <button class="pin-btn" onclick="pinPress('6')">6</button>
+      <button class="pin-btn" onclick="pinPress('7')">7</button>
+      <button class="pin-btn" onclick="pinPress('8')">8</button>
+      <button class="pin-btn" onclick="pinPress('9')">9</button>
+      <button class="pin-btn pin-del" onclick="pinClear()">Temizle</button>
+      <button class="pin-btn" onclick="pinPress('0')">0</button>
+      <button class="pin-btn pin-del" onclick="pinDel()">&#9003;</button>
+    </div>
+    <div class="pin-error" id="pin-error"></div>
+    <div class="pin-hint" id="pin-hint"></div>
+  </div>
+</div>
+
+<!-- ===== ŞUBE KURULUM ===== -->
+<div id="sube-screen" style="display:none">
+  <div class="login-card">
+    <div class="login-logo">BRGR</div>
+    <div class="login-sub">Ercan BRGR Envanter</div>
+    <div class="login-title">Şubenizi Oluşturun</div>
+    <div style="text-align:left;margin-bottom:20px">
+      <label style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;display:block;margin-bottom:6px">Şube Adı</label>
+      <input type="text" id="sube-input" placeholder="Örn: Kadıköy Şubesi"
+        style="width:100%;padding:14px;border:2px solid #eee;border-radius:10px;font-size:16px;outline:none;margin-bottom:4px"
+        onfocus="this.style.borderColor='#e85d04'" onblur="this.style.borderColor='#eee'">
+      <div style="font-size:11px;color:#aaa;margin-top:4px">Bu isim uygulamanın üst kısmında görünür</div>
+    </div>
+    <button onclick="saveSube()" style="width:100%;padding:14px;background:#e85d04;color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer">Başla →</button>
+  </div>
+</div>
+
+<!-- ===== APP ===== -->
+<div id="app">
+
+  <!-- TOP BAR -->
+  <div id="topbar">
+    <button id="menu-btn" onclick="toggleDrawer()">&#9776;</button>
+    <div id="topbar-title" onclick="openRenameModal()">
+      <span id="product-name-display">Ürün Seçin</span>
+      <span id="topbar-sub" style="font-size:10px;color:#ffb380">Ada tıklayarak değiştir</span>
+    </div>
+    <div id="topbar-sube" style="font-size:11px;color:#ffb380;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:90px;cursor:pointer" onclick="openSubeModal()" title="Şube adını değiştir"></div>
+    <select id="topbar-birim" onchange="saveBirim()" title="Birim">
+      <option value="Adet">Adet</option>
+      <option value="Kg">Kg</option>
+      <option value="Lt">Lt</option>
+      <option value="Paket">Paket</option>
+      <option value="Kutu">Kutu</option>
+    </select>
+    <button class="top-btn top-btn-add" onclick="toggleAddForm()">+ Ekle</button>
+    <button class="top-btn top-btn-menu" onclick="window.print()" title="Yazdır">🖨</button>
+  </div>
+
+  <!-- DRAWER OVERLAY -->
+  <div id="drawer-overlay" onclick="closeDrawer()"></div>
+
+  <!-- DRAWER -->
+  <div id="drawer">
+    <div id="drawer-header">
+      <div class="brand">BRGR ENVANTERİ</div>
+      <button id="drawer-close" onclick="closeDrawer()">&#10005;</button>
+    </div>
+    <div id="drawer-search">
+      <input type="text" id="search-input" placeholder="Ürün ara..." oninput="filterProducts()">
+    </div>
+    <div id="product-list"></div>
+  </div>
+
+  <!-- CONTENT -->
+  <div id="content">
+    <div id="page-content"></div>
+  </div>
+
+  <!-- BOTTOM NAV (mobile) -->
+  <div id="bottom-nav">
+    <button class="btn btn-primary" style="flex:1" onclick="toggleAddForm()">+ Gün Ekle</button>
+    <button class="btn btn-outline" onclick="exportData()">CSV</button>
+    <button class="btn" style="background:#f0f0f0;color:#333" onclick="window.print()">Yazdır</button>
+  </div>
+</div>
+
+<!-- RENAME MODAL -->
+<div class="overlay" id="rename-modal">
+  <div class="modal">
+    <h3>Ürün Adını Değiştir</h3>
+    <input type="text" id="rename-input" placeholder="Yeni ürün adı">
+    <div class="modal-actions">
+      <button class="btn btn-outline btn-sm" onclick="closeRenameModal()">İptal</button>
+      <button class="btn btn-primary btn-sm" onclick="confirmRename()">Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<!-- INSTALL BAR -->
+<div id="install-bar">
+  <span>Bu uygulamayı telefona yükleyin!</span>
+  <div style="display:flex;gap:8px">
+    <button onclick="installApp()" style="background:#fff;color:var(--orange);border:none;padding:8px 14px;border-radius:6px;font-weight:700;cursor:pointer">Yükle</button>
+    <button onclick="document.getElementById('install-bar').classList.remove('show')" style="background:transparent;color:#fff;border:1px solid rgba(255,255,255,0.5);padding:8px 10px;border-radius:6px;cursor:pointer">✕</button>
+  </div>
+</div>
+
+<script>
+// ===== PIN =====
+// pinMode: 'login' | 'setup_new' | 'setup_confirm'
+let pinVal = '';
+let pinMode = 'login';
+let pinTemp = '';
+
+function initPin() {
+  const saved = localStorage.getItem('brgr_pin');
+  if (!saved) {
+    pinMode = 'setup_new';
+    document.getElementById('login-title').textContent = '4 Haneli Kod Belirleyin';
+    document.getElementById('pin-hint').textContent = 'İlk kullanım — kendi kodunuzu girin';
+  } else {
+    pinMode = 'login';
+    document.getElementById('login-title').textContent = 'Erişim Kodunuz';
+    document.getElementById('pin-hint').textContent = '';
+  }
+}
+
+function pinPress(n) {
+  if (pinVal.length >= 4) return;
+  pinVal += n;
+  updateDots();
+  if (pinVal.length === 4) setTimeout(handlePin, 150);
+}
+function pinDel() { pinVal = pinVal.slice(0,-1); updateDots(); }
+function pinClear() { pinVal = ''; updateDots(); }
+
+function updateDots(err) {
+  for (let i=0;i<4;i++) {
+    const d = document.getElementById('d'+i);
+    d.className = 'pin-dot' + (i < pinVal.length ? (err?' error':' filled') : '');
+  }
+}
+
+function handlePin() {
+  if (pinMode === 'setup_new') {
+    pinTemp = pinVal;
+    pinVal = '';
+    updateDots();
+    pinMode = 'setup_confirm';
+    document.getElementById('login-title').textContent = 'Kodu Tekrar Girin';
+    document.getElementById('pin-hint').textContent = 'Doğrulama için aynı kodu tekrar girin';
+    document.getElementById('pin-error').textContent = '';
+
+  } else if (pinMode === 'setup_confirm') {
+    if (pinVal === pinTemp) {
+      localStorage.setItem('brgr_pin', pinVal);
+      // Şube adı yoksa şube kurulum ekranını göster
+      if (!localStorage.getItem('brgr_sube')) {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('sube-screen').style.display = 'flex';
+        setTimeout(() => document.getElementById('sube-input').focus(), 200);
+      } else {
+        openApp();
+      }
+    } else {
+      updateDots(true);
+      document.getElementById('pin-error').textContent = 'Kodlar eşleşmedi, tekrar deneyin';
+      setTimeout(() => {
+        pinVal = ''; pinTemp = ''; pinMode = 'setup_new';
+        updateDots();
+        document.getElementById('login-title').textContent = '4 Haneli Kod Belirleyin';
+        document.getElementById('pin-hint').textContent = 'Tekrar baştan girin';
+        document.getElementById('pin-error').textContent = '';
+      }, 1200);
+    }
+
+  } else {
+    const saved = localStorage.getItem('brgr_pin');
+    if (pinVal === saved) {
+      if (!localStorage.getItem('brgr_sube')) {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('sube-screen').style.display = 'flex';
+        setTimeout(() => document.getElementById('sube-input').focus(), 200);
+      } else {
+        openApp();
+      }
+    } else {
+      updateDots(true);
+      document.getElementById('pin-error').textContent = 'Hatalı kod, tekrar deneyin';
+      setTimeout(() => { pinVal=''; updateDots(); document.getElementById('pin-error').textContent=''; }, 1000);
+    }
+  }
+}
+
+function saveSube() {
+  const sube = document.getElementById('sube-input').value.trim();
+  if (!sube) { alert('Şube adı girin'); return; }
+  localStorage.setItem('brgr_sube', sube);
+  document.getElementById('sube-screen').style.display = 'none';
+  openApp();
+}
+
+function openSubeModal() {
+  const yeni = prompt('Yeni şube adı:', localStorage.getItem('brgr_sube') || '');
+  if (yeni && yeni.trim()) {
+    localStorage.setItem('brgr_sube', yeni.trim());
+    document.getElementById('topbar-sube').textContent = yeni.trim();
+  }
+}
+
+function openApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('sube-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  document.getElementById('app').style.flexDirection = 'column';
+  const sube = localStorage.getItem('brgr_sube') || '';
+  const subeEl = document.getElementById('topbar-sube');
+  if (subeEl) subeEl.textContent = sube;
+  renderSidebar(); renderPage();
+}
+
+window.addEventListener('load', () => {
+  initPin();
+});
+
+// ===== DATA =====
+const DEFAULT_PRODUCTS = [
+  'Mini Et Burger','Joker Burger','Super Burger','Tasty Burger','Special',
+  'Mini Tavuk','Tavuk Burger','Tenders','Patates','Nugget',
+  'Soğan Halkası','Çıtır Tavuk','Stick Peynir','Karamelize Soğan','Füme',
+  'Kızartma Yağı','80 gr Ekmek','Mini Ekmek','Kutu İçecekler','Soda Grubu',
+  '1 Litrelik İçecekler','Ürün 22','Ürün 23','Ürün 24','Ürün 25'
+];
+
+function loadData() {
+  const d = localStorage.getItem('ercan_envanter_v3');
+  if (d) return JSON.parse(d);
+  return { products: DEFAULT_PRODUCTS.map((name,i) => ({ id:i, name, koli:'', adet:'', birim:'Adet', entries:[] })) };
+}
+function saveData() { localStorage.setItem('ercan_envanter_v3', JSON.stringify(appData)); }
+let appData = loadData();
+let currentProduct = 0;
+let showAddForm = false;
+
+// ===== DRAWER =====
+function toggleDrawer() {
+  document.getElementById('drawer').classList.toggle('open');
+  document.getElementById('drawer-overlay').classList.toggle('open');
+}
+function closeDrawer() {
+  document.getElementById('drawer').classList.remove('open');
+  document.getElementById('drawer-overlay').classList.remove('open');
+}
+
+// ===== SIDEBAR =====
+function renderSidebar(filter='') {
+  const list = document.getElementById('product-list');
+  list.innerHTML = '';
+  appData.products.forEach((p,i) => {
+    if (filter && !p.name.toLowerCase().includes(filter.toLowerCase())) return;
+    const div = document.createElement('div');
+    div.className = 'product-item' + (i===currentProduct?' active':'');
+    div.innerHTML = `<span class="num">${i+1}</span><span class="pname">${p.name}</span>${p.entries.length?`<span class="badge">${p.entries.length}</span>`:''}`;
+    div.onclick = () => { currentProduct=i; showAddForm=false; renderSidebar(document.getElementById('search-input').value); renderPage(); closeDrawer(); };
+    list.appendChild(div);
+  });
+}
+function filterProducts() { renderSidebar(document.getElementById('search-input').value); }
+
+// ===== META =====
+function saveBirim() {
+  appData.products[currentProduct].birim = document.getElementById('topbar-birim').value;
+  saveData(); renderPage();
+}
+
+// ===== RENAME =====
+function openRenameModal() {
+  document.getElementById('rename-input').value = appData.products[currentProduct].name;
+  document.getElementById('rename-modal').classList.add('show');
+  setTimeout(() => document.getElementById('rename-input').focus(), 100);
+}
+function closeRenameModal() { document.getElementById('rename-modal').classList.remove('show'); }
+function confirmRename() {
+  const v = document.getElementById('rename-input').value.trim();
+  if (v) { appData.products[currentProduct].name=v; saveData(); renderSidebar(); renderPage(); }
+  closeRenameModal();
+}
+document.getElementById('rename-input').addEventListener('keydown', e => { if(e.key==='Enter')confirmRename(); if(e.key==='Escape')closeRenameModal(); });
+
+// ===== CALC =====
+function n(v){ return parseFloat(String(v).replace(',','.')) || 0; }
+function calcEntry(e) {
+  const a=n(e.acilis), g=n(e.gelen), gi=n(e.gelenIade),
+        t=n(e.transfer), k=n(e.kapanis),
+        m=n(e.mallara), z=n(e.zayi), o=n(e.odenmez);
+  const sayima = r(a+g-gi-t-k);
+  return { sayima, fark: r(m-sayima+z+o) };
+}
+function r(v){return Math.round(v*100)/100}
+
+// ===== STATS =====
+function getStats(entries) {
+  if (!entries.length) return { last:'-', totalFark:0, posCount:0, negCount:0 };
+  let totalFark=0, posCount=0, negCount=0;
+  entries.forEach(e => {
+    const {fark}=calcEntry(e);
+    totalFark+=fark;
+    if(fark>0)posCount++; else if(fark<0)negCount++;
+  });
+  const last=entries[entries.length-1];
+  return { last: last.kapanis!==''?last.kapanis:'-', totalFark:r(totalFark), posCount, negCount };
+}
+
+// ===== RENDER PAGE =====
+function renderPage() {
+  const p = appData.products[currentProduct];
+  const birim = p.birim || 'Adet';
+  document.getElementById('product-name-display').textContent = p.name;
+  document.getElementById('topbar-sub').textContent = `${birim} • Ada tıkla değiştir`;
+  const birimEl = document.getElementById('topbar-birim');
+  if (birimEl) birimEl.value = birim;
+
+  const stats = getStats(p.entries);
+  const fc = stats.totalFark>0?'green':stats.totalFark<0?'red':'';
+  let html = '';
+
+  if (showAddForm) {
+    const last = p.entries.length ? p.entries[p.entries.length-1] : null;
+    const nextAcilis = last && last.kapanis!=='' ? last.kapanis : '';
+    html += `<div class="add-card" id="add-form">
+      <h3>Yeni Gün Ekle</h3>
+      <div class="form-grid">
+        <div class="ff"><label>Gün</label><input type="number" id="f-gun" value="${p.entries.length+1}" inputmode="numeric"></div>
+        <div class="ff"><label>Tarih</label><input type="date" id="f-tarih" value="${new Date().toISOString().split('T')[0]}"></div>
+        <div class="ff"><label>Açılış (${birim})</label><input type="number" id="f-acilis" value="${nextAcilis}" oninput="liveCalc()" step="0.01" placeholder="0" inputmode="decimal"></div>
+        <div class="ff"><label>Gelen (${birim})</label><input type="number" id="f-gelen" oninput="liveCalc()" step="0.01" placeholder="0" inputmode="decimal"></div>
+        <div class="ff"><label>Gelen İade</label><input type="number" id="f-gelenIade" oninput="liveCalc()" step="0.01" placeholder="0" inputmode="decimal"></div>
+        <div class="ff"><label>Transfer</label><input type="number" id="f-transfer" oninput="liveCalc()" step="0.01" placeholder="0" inputmode="decimal"></div>
+        <div class="ff"><label>Kapanış (${birim})</label><input type="number" id="f-kapanis" oninput="liveCalc()" step="0.01" placeholder="0" inputmode="decimal"></div>
+        <div class="ff"><label>Sayıma Göre Kullanılan</label><input type="number" id="f-sayima" class="calc" readonly placeholder="Otomatik"></div>
+        <div class="ff"><label>Mallara Göre Satılan</label><input type="number" id="f-mallara" oninput="liveCalc()" step="0.01" placeholder="0" inputmode="decimal"></div>
+        <div class="ff"><label>Zayi</label><input type="number" id="f-zayi" oninput="liveCalc()" step="0.01" placeholder="0" inputmode="decimal"></div>
+        <div class="ff"><label>Ödenmez</label><input type="number" id="f-odenmez" oninput="liveCalc()" step="0.01" placeholder="0" inputmode="decimal"></div>
+        <div class="ff"><label>FARK +/-</label><input type="number" id="f-fark" class="calc" readonly placeholder="Otomatik"></div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" onclick="addEntry()">Kaydet</button>
+        <button class="btn btn-outline" onclick="toggleAddForm()">İptal</button>
+      </div>
+    </div>`;
+  }
+
+  html += `<div class="stats-row">
+    <div class="stat-card"><div class="sl">Son Kapanış</div><div class="sv">${stats.last}</div></div>
+    <div class="stat-card orange"><div class="sl">Toplam Gün</div><div class="sv">${p.entries.length}</div></div>
+    <div class="stat-card ${fc}"><div class="sl">Toplam Fark</div><div class="sv">${stats.totalFark>0?'+':''}${stats.totalFark}</div></div>
+    <div class="stat-card"><div class="sl">+ / - Gün</div><div class="sv" style="font-size:16px"><span style="color:#27ae60">+${stats.posCount}</span> / <span style="color:#e74c3c">${stats.negCount}</span></div></div>
+  </div>`;
+
+  if (!p.entries.length) {
+    html += `<div class="empty"><div class="ico">📋</div><p>Henüz giriş yok.<br><strong>+ Ekle</strong> butonuna basın.</p></div>`;
+  } else {
+    html += `<div class="table-card"><div class="table-scroll"><table>
+      <thead><tr>
+        <th>#</th><th>Gün</th><th>Tarih</th>
+        <th>Açılış<br>(${birim})</th><th>Gelen<br>(${birim})</th>
+        <th>G.İade</th><th>Transfer</th>
+        <th>Kapanış<br>(${birim})</th>
+        <th>Sayıma Göre<br>Kullanılan</th>
+        <th>Mallara Göre<br>Satılan</th>
+        <th>Zayi</th><th>Ödenmez</th>
+        <th>FARK +/-</th>
+      </tr></thead><tbody>`;
+    p.entries.forEach((e,idx) => {
+      const {sayima,fark}=calcEntry(e);
+      const fc2=fark>0?'fp':fark<0?'fn':'fz';
+      const hasData = e.acilis!==''||e.kapanis!=='';
+      html+=`<tr>
+        <td><button class="del-btn" onclick="deleteEntry(${idx})">✕</button></td>
+        <td><input type="number" value="${e.gun||''}" onchange="updateEntry(${idx},'gun',this.value)" inputmode="numeric"></td>
+        <td><input type="date" value="${e.tarih||''}" onchange="updateEntry(${idx},'tarih',this.value)" style="width:130px"></td>
+        <td><input type="number" value="${e.acilis||''}" onchange="updateEntry(${idx},'acilis',this.value)" step="0.01" inputmode="decimal"></td>
+        <td><input type="number" value="${e.gelen||''}" onchange="updateEntry(${idx},'gelen',this.value)" step="0.01" inputmode="decimal"></td>
+        <td><input type="number" value="${e.gelenIade||''}" onchange="updateEntry(${idx},'gelenIade',this.value)" step="0.01" inputmode="decimal"></td>
+        <td><input type="number" value="${e.transfer||''}" onchange="updateEntry(${idx},'transfer',this.value)" step="0.01" inputmode="decimal"></td>
+        <td><input type="number" value="${e.kapanis||''}" onchange="updateEntry(${idx},'kapanis',this.value)" step="0.01" inputmode="decimal"></td>
+        <td class="calc">${hasData?sayima:''}</td>
+        <td><input type="number" value="${e.mallara||''}" onchange="updateEntry(${idx},'mallara',this.value)" step="0.01" inputmode="decimal"></td>
+        <td><input type="number" value="${e.zayi||''}" onchange="updateEntry(${idx},'zayi',this.value)" step="0.01" inputmode="decimal"></td>
+        <td><input type="number" value="${e.odenmez||''}" onchange="updateEntry(${idx},'odenmez',this.value)" step="0.01" inputmode="decimal"></td>
+        <td class="${fc2}">${hasData?(fark>0?'+':'')+fark:''}</td>
+      </tr>`;
+    });
+    html+=`</tbody></table></div></div>`;
+  }
+
+  document.getElementById('page-content').innerHTML = html;
+}
+
+// ===== LIVE CALC =====
+function liveCalc() {
+  const g=id=>n(document.getElementById(id)?.value);
+  const sayima=r(g('f-acilis')+g('f-gelen')-g('f-gelenIade')-g('f-transfer')-g('f-kapanis'));
+  const fark=r(g('f-mallara')-sayima+g('f-zayi')+g('f-odenmez'));
+  const se=document.getElementById('f-sayima'), fe=document.getElementById('f-fark');
+  if(se) se.value=sayima;
+  if(fe){ fe.value=(fark>0?'+':'')+fark; fe.className='calc '+(fark>0?'fpos':fark<0?'fneg':''); }
+}
+function id(x){return document.getElementById(x)}
+
+// ===== ADD / UPDATE / DELETE =====
+function toggleAddForm() { showAddForm=!showAddForm; renderPage(); if(showAddForm){setTimeout(()=>{const el=document.getElementById('add-form');if(el)el.scrollIntoView({behavior:'smooth'})},50);} }
+
+function addEntry() {
+  const v=x=>document.getElementById(x)?.value||'';
+  appData.products[currentProduct].entries.push({
+    gun:v('f-gun'),tarih:v('f-tarih'),acilis:v('f-acilis'),gelen:v('f-gelen'),
+    gelenIade:v('f-gelenIade'),transfer:v('f-transfer'),kapanis:v('f-kapanis'),
+    mallara:v('f-mallara'),zayi:v('f-zayi'),odenmez:v('f-odenmez')
+  });
+  showAddForm=false; saveData(); renderSidebar(document.getElementById('search-input').value); renderPage();
+}
+
+function updateEntry(idx,field,val) {
+  appData.products[currentProduct].entries[idx][field]=val;
+  saveData(); renderPage();
+}
+
+function deleteEntry(idx) {
+  if(!confirm('Bu girişi silmek istediğinize emin misiniz?'))return;
+  appData.products[currentProduct].entries.splice(idx,1);
+  saveData(); renderSidebar(document.getElementById('search-input').value); renderPage();
+}
+
+// ===== EXPORT =====
+function exportData() {
+  const p=appData.products[currentProduct];
+  let csv='Gün,Tarih,Açılış,Gelen,Gelen İade,Transfer,Kapanış,Sayıma Göre Kullanılan,Mallara Göre Satılan,Zayi,Ödenmez,FARK+/-\n';
+  p.entries.forEach(e=>{const{sayima,fark}=calcEntry(e);csv+=[e.gun,e.tarih,e.acilis,e.gelen,e.gelenIade,e.transfer,e.kapanis,sayima,e.mallara,e.zayi,e.odenmez,fark].join(',')+'\n';});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'}));
+  a.download=p.name.replace(/\s+/g,'_')+'_envanter.csv'; a.click();
+}
+
+// ===== PWA =====
+if('serviceWorker' in navigator && location.protocol !== 'file:') {
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault(); deferredPrompt=e;
+  document.getElementById('install-bar').classList.add('show');
+});
+function installApp(){
+  if(deferredPrompt){deferredPrompt.prompt();deferredPrompt.userChoice.then(()=>{deferredPrompt=null;document.getElementById('install-bar').classList.remove('show');});}
+}
+
+// INIT
+renderSidebar();
+renderPage();
+</script>
+</body>
+</html>

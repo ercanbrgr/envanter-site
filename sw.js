@@ -1,4 +1,4 @@
-const CACHE = 'ercan-brgr-v3';
+const CACHE = 'ercan-brgr-v8';
 const FILES = ['/envanter-site/', '/envanter-site/index.html', '/envanter-site/icon.svg'];
 
 self.addEventListener('install', e => {
@@ -15,6 +15,6 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   e.respondWith(
-    caches.match(e.request).then(cached => cached || fetch(e.request))
+    fetch(e.request).catch(() => caches.match(e.request))
   );
 });

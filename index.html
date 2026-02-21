@@ -434,8 +434,9 @@ function autoMapFatura(ad){
   if(/STİCK.*PEYNİR|STICK.*PEYNIR|PEYNIR.*STİCK/.test(a))return 12;
   // Kızartma Yağı
   if(/FRITÖZ|FRITEUSE|FRITOZ|KIZARTMA.*YAĞ|YAĞ.*KIZARTMA|FRİTÖZ/.test(a))return 15;
-  // Uludağ: Frutti, meyveli → soda grubu; su/maden suyu → atla
-  if(/MADEN SUYU|KAYNAK SUYU|PRE\.KAY|SU.*40CL|SU\b|DAMLA|MN\.SADE/.test(a))return -1;
+  // Maden yazanlar → soda grubu; diğer sular → atla
+  if(/MADEN/.test(a))return 19;
+  if(/KAYNAK SUYU|PRE\.KAY|SU.*40CL|SU\b|DAMLA|MN\.SADE/.test(a))return -1;
   if(/FRUTTI|FRUTTİ/.test(a))return 19;
   // Uludağ: 33CL içecekler → kutu
   if(/LİMONATA.*33|EFS.*GAZOZ.*33|EFS.*PORT.*33|GAZOZ.*33CL/.test(a))return 18;

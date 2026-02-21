@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#e85d04">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="BRGR Envanter">
+<meta name="apple-mobile-web-app-title" content="Ercan BRGR Envanter">
 <link rel="apple-touch-icon" href="icon.svg">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -208,9 +208,8 @@ td.fz{background:#f5f5f5;color:#999;font-weight:700}
 <body>
 <div id="auth-screen">
   <div class="auth-card">
-    <div class="auth-logo">BRGR</div>
-    <div class="auth-sub">Ercan BRGR Envanter</div>
-    <div id="auth-loading" style="display:none;text-align:center;padding:30px;color:var(--orange);font-size:16px">⏳ Yükleniyor...</div>
+    <div class="auth-logo">ERCAN BRGR</div>
+    <div class="auth-sub">Envanter Takip Sistemi</div>
     <div class="auth-tabs">
       <button class="auth-tab active" id="tab-giris" onclick="switchTab('giris')">Giriş Yap</button>
       <button class="auth-tab" id="tab-kayit" onclick="switchTab('kayit')">Kayıt Ol</button>
@@ -236,8 +235,8 @@ td.fz{background:#f5f5f5;color:#999;font-weight:700}
 
 <div id="sube-screen">
   <div class="sube-card">
-    <div class="auth-logo">BRGR</div>
-    <div class="auth-sub">Ercan BRGR Envanter</div>
+    <div class="auth-logo">ERCAN BRGR</div>
+    <div class="auth-sub">Envanter Takip Sistemi</div>
     <div style="font-size:16px;font-weight:700;color:#333;margin-bottom:20px">Şubenizi Oluşturun</div>
     <div class="auth-field" style="text-align:left">
       <label>Şube Adı</label>
@@ -405,7 +404,8 @@ async function openApp(){showScreen('app');const profil=await loadProfil();const
 function setSyncIcon(state){const el=document.getElementById('sync-indicator');if(state==='ok')el.textContent='☁️';else if(state==='saving')el.textContent='🔄';else if(state==='err')el.textContent='⚠️';}
 function toggleDrawer(){document.getElementById('drawer').classList.toggle('open');document.getElementById('drawer-overlay').classList.toggle('open');}
 function closeDrawer(){document.getElementById('drawer').classList.remove('open');document.getElementById('drawer-overlay').classList.remove('open');}
-function renderSidebar(filter=''){const list=document.getElementById('product-list');list.innerHTML='';if(isAdmin){const div=document.createElement('div');div.className='product-item'+(currentProduct===-1?' active':'');div.innerHTML='<span class="num">⭐</span><span class="pname">Admin Paneli</span>';div.onclick=()=>{currentProduct=-1;showAddForm=false;renderAdminPanel();closeDrawer();};list.appendChild(div);}appData.products.forEach((p,i)=>{if(filter&&!p.name.toLowerCase().includes(filter.toLowerCase()))return;const lastKapanis=p.entries.length?parseFloat(p.entries[p.entries.length-1].kapanis||''):null;const uyari=p.minStok!==null&&lastKapanis!==null&&lastKapanis<p.minStok;const div=document.createElement('div');div.className='product-item'+(i===currentProduct?' active':'');div.innerHTML=`<span class="num">${i+1}</span><span class="pname">${p.name}${uyari?` <span style="color:#e74c3c;font-size:10px;font-weight:700">⚠️ AZ</span>`:''}</span>${p.entries.length?`<span class="badge">${p.entries.length}</span>`:''}`;div.onclick=()=>{currentProduct=i;showAddForm=false;renderSidebar(document.getElementById('search-input').value);renderPage();closeDrawer();};list.appendChild(div);});}
+function renderSidebar(filter=''){const list=document.getElementById('product-list');list.innerHTML='';if(isAdmin){const div=document.createElement('div');div.className='product-item'+(currentProduct===-1?' active':'');div.innerHTML='<span class="num">⭐</span><span class="pname">Admin Paneli</span>';div.onclick=()=>{currentProduct=-1;showAddForm=false;renderAdminPanel();closeDrawer();};list.appendChild(div);}appData.products.forEach((p,i)=>{if(filter&&!p.name.toLowerCase().includes(filter.toLowerCase()))return;const lastKapanis=p.entries.length?parseFloat(p.entries[p.entries.length-1].kapanis||''):null;const uyari=p.minStok!==null&&lastKapanis!==null&&lastKapanis<p.minStok;const div=document.createElement('div');div.className='product-item'+(i===currentProduct?' active':'');div.style.display='flex';div.style.alignItems='center';div.style.gap='4px';const moveHtml=isAdmin?`<span style="display:flex;flex-direction:column;gap:1px;flex-shrink:0"><button onclick="event.stopPropagation();moveProduct(${i},-1)" style="background:none;border:none;color:#aaa;cursor:pointer;font-size:10px;padding:0;line-height:1" title="Yukarı">▲</button><button onclick="event.stopPropagation();moveProduct(${i},1)" style="background:none;border:none;color:#aaa;cursor:pointer;font-size:10px;padding:0;line-height:1" title="Aşağı">▼</button></span>`:'';div.innerHTML=moveHtml+`<span class="num">${i+1}</span><span class="pname">${p.name}${uyari?` <span style="color:#e74c3c;font-size:10px;font-weight:700">⚠️ AZ</span>`:''}</span>${p.entries.length?`<span class="badge">${p.entries.length}</span>`:''}`;div.onclick=()=>{currentProduct=i;showAddForm=false;renderSidebar(document.getElementById('search-input').value);renderPage();closeDrawer();};list.appendChild(div);});}
+async function moveProduct(i,dir){const j=i+dir;if(j<0||j>=appData.products.length)return;const a=appData.products[i],b=appData.products[j];const tmpSira=a.sira;a.sira=b.sira;b.sira=tmpSira;appData.products[i]=b;appData.products[j]=a;await sb.from('urunler').update({sira:a.sira}).eq('id',a.id);await sb.from('urunler').update({sira:b.sira}).eq('id',b.id);if(currentProduct===i)currentProduct=j;else if(currentProduct===j)currentProduct=i;renderSidebar(document.getElementById('search-input').value);renderPage();}
 function filterProducts(){renderSidebar(document.getElementById('search-input').value);}
 function n(v){return parseFloat(String(v).replace(',','.'))||0;}
 function r(v){return Math.round(v*100)/100;}

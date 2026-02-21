@@ -75,19 +75,20 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5;min-height:100vh
 #loading-screen.fade-out{animation:splashFadeOut 1s cubic-bezier(0.4,0,1,1) forwards}
 @keyframes splashFadeOut{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.15) translateY(-30px)}}
 #app{display:none;min-height:100vh;flex-direction:column}
-#topbar{background:var(--dark);color:#fff;padding:12px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,0.3)}
-#menu-btn{background:none;border:none;color:#fff;font-size:22px;cursor:pointer;padding:4px 8px;border-radius:6px;line-height:1}
+#topbar{background:var(--dark);color:#fff;padding:10px 10px;display:flex;align-items:center;gap:6px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,0.3);flex-wrap:nowrap;overflow:hidden}
+#menu-btn{background:none;border:none;color:#fff;font-size:22px;cursor:pointer;padding:4px 6px;border-radius:6px;line-height:1;flex-shrink:0}
 #menu-btn:hover{background:rgba(255,255,255,0.1)}
-#topbar-title{flex:1;font-size:15px;font-weight:700;color:#fff;cursor:pointer;min-width:0}
-#topbar-title span{display:block;font-size:10px;color:var(--orange);font-weight:400}
-#topbar-birim{background:rgba(255,255,255,0.1);border:none;color:#fff;padding:6px 10px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;outline:none}
+#topbar-title{flex:1;font-size:13px;font-weight:700;color:#fff;cursor:pointer;min-width:0;overflow:hidden}
+#topbar-title #product-name-display{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+#topbar-title span#topbar-sub{display:block;font-size:9px;color:var(--orange);font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#topbar-birim{background:rgba(255,255,255,0.1);border:none;color:#fff;padding:5px 6px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;outline:none;flex-shrink:0;max-width:72px}
 #topbar-birim option{color:var(--dark);background:#fff}
-.top-btn{padding:7px 12px;border-radius:8px;border:none;cursor:pointer;font-size:12px;font-weight:700;white-space:nowrap}
+.top-btn{padding:6px 10px;border-radius:8px;border:none;cursor:pointer;font-size:11px;font-weight:700;white-space:nowrap;flex-shrink:0}
 .top-btn-add{background:var(--orange);color:#fff}
 .top-btn-add:hover{background:#c44d02}
 .top-btn-menu{background:rgba(255,255,255,0.1);color:#fff}
-#topbar-user{font-size:10px;color:#ffb380;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:80px}
-#sync-indicator{font-size:18px;cursor:default;transition:opacity 0.3s}
+#topbar-user{font-size:10px;color:#ffb380;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:70px;flex-shrink:0}
+#sync-indicator{font-size:16px;cursor:default;transition:opacity 0.3s;flex-shrink:0}
 #drawer-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200}
 #drawer-overlay.open{display:block}
 #drawer{position:fixed;left:-280px;top:0;bottom:0;width:280px;background:var(--dark);z-index:201;transition:left 0.3s ease;display:flex;flex-direction:column;overflow:hidden}

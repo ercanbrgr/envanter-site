@@ -33,10 +33,26 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5;min-height:100vh
 .auth-note{font-size:11px;color:#aaa;margin-top:12px;line-height:1.5}
 #sube-screen{display:none;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,var(--dark) 0%,var(--deep) 100%);padding:20px}
 .sube-card{background:#fff;border-radius:20px;padding:36px 28px;width:100%;max-width:380px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3)}
-#loading-screen{display:none;align-items:center;justify-content:center;flex-direction:column;min-height:100vh;background:linear-gradient(135deg,var(--dark) 0%,var(--deep) 100%);gap:16px}
-.spinner{width:40px;height:40px;border:4px solid rgba(255,255,255,0.2);border-top-color:var(--orange);border-radius:50%;animation:spin 0.8s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-.loading-text{color:#fff;font-size:14px;opacity:0.7}
+#loading-screen{display:none;align-items:center;justify-content:center;flex-direction:column;min-height:100vh;background:linear-gradient(135deg,#0d0d1a 0%,#1a1a2e 50%,#16213e 100%);gap:0;overflow:hidden;position:relative}
+#loading-screen::before{content:'';position:absolute;width:300px;height:300px;background:radial-gradient(circle,rgba(232,89,12,0.15) 0%,transparent 70%);border-radius:50%;animation:pulseGlow 2s ease-in-out infinite}
+.splash-logo{display:flex;flex-direction:column;align-items:center;gap:6px;animation:splashDrop 0.7s cubic-bezier(0.34,1.56,0.64,1) forwards;opacity:0;transform:translateY(-40px)}
+.splash-icon{font-size:54px;line-height:1;filter:drop-shadow(0 4px 20px rgba(232,89,12,0.6));animation:iconPop 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.3s forwards;opacity:0;transform:scale(0.3)}
+.splash-brand{font-size:36px;font-weight:900;letter-spacing:6px;color:#fff;text-shadow:0 0 30px rgba(232,89,12,0.8);animation:splashDrop 0.6s cubic-bezier(0.34,1.56,0.64,1) 0.5s forwards;opacity:0;transform:translateY(20px)}
+.splash-brand span{color:var(--orange)}
+.splash-sub{font-size:11px;letter-spacing:4px;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-top:2px;animation:fadeIn 0.5s ease 1s forwards;opacity:0}
+.splash-dots{display:flex;gap:8px;margin-top:40px;animation:fadeIn 0.3s ease 1.2s forwards;opacity:0}
+.splash-dot{width:8px;height:8px;border-radius:50%;background:var(--orange);animation:dotBounce 1.2s ease-in-out infinite}
+.splash-dot:nth-child(2){animation-delay:0.2s;background:rgba(232,89,12,0.6)}
+.splash-dot:nth-child(3){animation-delay:0.4s;background:rgba(232,89,12,0.3)}
+.splash-line{width:0;height:2px;background:linear-gradient(90deg,transparent,var(--orange),transparent);margin-top:30px;border-radius:2px;animation:lineExpand 0.8s ease 0.8s forwards}
+@keyframes splashDrop{to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes iconPop{to{opacity:1;transform:scale(1)}}
+@keyframes fadeIn{to{opacity:1}}
+@keyframes dotBounce{0%,100%{transform:translateY(0);opacity:1}50%{transform:translateY(-10px);opacity:0.5}}
+@keyframes lineExpand{to{width:120px}}
+@keyframes pulseGlow{0%,100%{transform:scale(1);opacity:0.6}50%{transform:scale(1.3);opacity:1}}
+#loading-screen.fade-out{animation:splashFadeOut 0.5s ease forwards}
+@keyframes splashFadeOut{to{opacity:0;transform:scale(1.05)}}
 #app{display:none;min-height:100vh;flex-direction:column}
 #topbar{background:var(--dark);color:#fff;padding:12px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,0.3)}
 #menu-btn{background:none;border:none;color:#fff;font-size:22px;cursor:pointer;padding:4px 8px;border-radius:6px;line-height:1}
@@ -208,7 +224,19 @@ td.fz{background:#f5f5f5;color:#999;font-weight:700}
   </div>
 </div>
 
-<div id="loading-screen"><div class="spinner"></div><div class="loading-text">Yükleniyor...</div></div>
+<div id="loading-screen">
+  <div class="splash-icon">🍔</div>
+  <div class="splash-logo">
+    <div class="splash-brand">ERCAN<span>BRGR</span></div>
+    <div class="splash-sub">Envanter Sistemi</div>
+  </div>
+  <div class="splash-line"></div>
+  <div class="splash-dots">
+    <div class="splash-dot"></div>
+    <div class="splash-dot"></div>
+    <div class="splash-dot"></div>
+  </div>
+</div>
 
 <div id="app">
   <div id="topbar">
@@ -361,7 +389,7 @@ async function addNewProduct(){const ad=prompt('Yeni ürün adı:');if(!ad||!ad.
 async function openSubeModal(){const profil=await loadProfil();const yeni=prompt('Yeni şube adı:',profil?.sube_adi||'');if(yeni&&yeni.trim()){await sb.from('sube_profiller').upsert({user_id:currentUser.id,sube_adi:yeni.trim()});document.getElementById('topbar-user').textContent=yeni.trim();document.getElementById('drawer-sube-info').textContent=yeni.trim();toast('Şube adı güncellendi');}}
 async function loadAllData(){const{data:urunler}=await sb.from('urunler').select('*').eq('user_id',currentUser.id).order('sira');const{data:girdiler}=await sb.from('gunluk_girdiler').select('*').eq('user_id',currentUser.id).order('tarih',{ascending:true});appData.products=(urunler||[]).map(u=>({id:u.id,sira:u.sira,name:u.ad,birim:u.birim||'Adet',koli:u.koli||'',adet:u.adet_koli||'',minStok:u.min_stok??null,birimFiyat:u.birim_fiyat||0,entries:(girdiler||[]).filter(g=>g.urun_sira===u.sira).map(g=>({dbId:g.id,gun:g.gun||'',tarih:g.tarih||'',acilis:g.acilis||'',gelen:g.gelen||'',gelenIade:g.gelen_iade||'',transfer:g.transfer||'',kapanis:g.kapanis||'',mallara:g.mallara_gore||'',zayi:g.zayi||'',odenmez:g.odenmez||'',not:g.gun_notu||''}))}))}
 async function initDefaultProducts(){const inserts=DEFAULT_PRODUCTS.map((p,i)=>({user_id:currentUser.id,sira:i,ad:p.name,birim:p.birim,koli:'',adet_koli:''}));await sb.from('urunler').upsert(inserts,{onConflict:'user_id,sira'});}
-async function openApp(){showScreen('app');const profil=await loadProfil();const subeAdi=profil?.sube_adi||currentUser.email;document.getElementById('topbar-user').textContent=subeAdi;document.getElementById('drawer-user-info').textContent=currentUser.email;document.getElementById('drawer-sube-info').textContent=subeAdi;setSyncIcon('ok');if(isAdmin){document.getElementById('topbar-user').innerHTML=subeAdi+' <span class="admin-badge">ADMİN</span>';}renderSidebar();if(isAdmin)renderAdminPanel();else renderPage();}
+async function openApp(){const ls=document.getElementById('loading-screen');if(ls){ls.classList.add('fade-out');await new Promise(r=>setTimeout(r,450));}showScreen('app');const profil=await loadProfil();const subeAdi=profil?.sube_adi||currentUser.email;document.getElementById('topbar-user').textContent=subeAdi;document.getElementById('drawer-user-info').textContent=currentUser.email;document.getElementById('drawer-sube-info').textContent=subeAdi;setSyncIcon('ok');if(isAdmin){document.getElementById('topbar-user').innerHTML=subeAdi+' <span class="admin-badge">ADMİN</span>';}renderSidebar();if(isAdmin)renderAdminPanel();else renderPage();}
 function setSyncIcon(state){const el=document.getElementById('sync-indicator');if(state==='ok')el.textContent='☁️';else if(state==='saving')el.textContent='🔄';else if(state==='err')el.textContent='⚠️';}
 function toggleDrawer(){document.getElementById('drawer').classList.toggle('open');document.getElementById('drawer-overlay').classList.toggle('open');}
 function closeDrawer(){document.getElementById('drawer').classList.remove('open');document.getElementById('drawer-overlay').classList.remove('open');}

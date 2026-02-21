@@ -1427,28 +1427,50 @@ async function uygulaRapor() {
   if (!Object.keys(totals).length) return;
 
   const siraNamMap = {};
-  appData.products.forEach(p => siraNamMap[p.sira] = p);
+  appData.products.forEach((p, idx) => { siraNamMap[idx] = p; });
 
-  let updated=0, skipped=0;
+  const bugun = new Date().toISOString().slice(0,10);
+  const gunAdi = ['Paz','Pzt','Sal','Çar','Per','Cum','Cmt'][new Date().getDay()];
+
+  let updated=0, created=0;
   for (const [sira] of Object.entries(totals)) {
     const inputEl = document.getElementById(`srv-${sira}`);
-    const finalVal = inputEl ? inputEl.value : '';
+    const finalVal = inputEl ? parseFloat(inputEl.value) : 0;
     if (!finalVal) continue;
 
     const p = siraNamMap[parseInt(sira)];
-    if (!p || !p.entries.length) { skipped++; continue; }
+    if (!p) continue;
 
-    const lastIdx = p.entries.length - 1;
-    p.entries[lastIdx].mallara = String(finalVal);
-
-    const e = p.entries[lastIdx];
-    if (e.dbId) {
-      await sb.from('gunluk_girdiler').update({mallara_gore: String(finalVal)}).eq('id', e.dbId);
+    if (!p.entries.length) {
+      // Giriş yoksa bugün için yeni oluştur
+      const newEntry = {
+        gun: gunAdi, tarih: bugun,
+        acilis:'', gelen:'', gelenIade:'', transfer:'',
+        kapanis:'', mallara: String(finalVal), zayi:'', odenmez:''
+      };
+      p.entries.push(newEntry);
+      const row = {
+        user_id: currentUser.id, urun_sira: parseInt(sira),
+        gun: gunAdi, tarih: bugun, acilis_miktari: null,
+        gelen_miktar: null, gelen_iade: null, transfer: null,
+        kapanis_miktari: null, mallara_gore: String(finalVal),
+        zayi: null, odenmez: null
+      };
+      const res = await sb.from('gunluk_girdiler').insert(row).select().single();
+      if (res.data) p.entries[p.entries.length-1].dbId = res.data.id;
+      created++;
+    } else {
+      const lastIdx = p.entries.length - 1;
+      p.entries[lastIdx].mallara = String(finalVal);
+      const e = p.entries[lastIdx];
+      if (e.dbId) {
+        await sb.from('gunluk_girdiler').update({mallara_gore: String(finalVal)}).eq('id', e.dbId);
+      }
+      updated++;
     }
-    updated++;
   }
 
-  toast(`${updated} ürün güncellendi${skipped?`, ${skipped} atlandı`:''}  ✓`, 3000);
+  toast(`${updated} güncellendi, ${created} yeni giriş oluşturuldu ✓`, 3000);
   closeSatisModal();
   renderPage();
 }

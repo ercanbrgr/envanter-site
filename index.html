@@ -377,9 +377,12 @@ function parseFaturaLines(text){
     // Nevada e-İrsaliye: "1  25.01EC.E18.0002  BURGER KÖFTESİ 120GR (1 Koli = 20,5 KG)  20,5"
     const nevM=l.match(/^\d+\s+[\w.]+\s+(.+?)\s+([\d.,]+)\s*$/);
     if(nevM){const miktar=parseFloat(nevM[2].replace(',','.'));if(miktar>0){const birim=/kg|kilo/i.test(nevM[1])?'Kg':/lt|litre/i.test(nevM[1])?'Lt':'Adet';results.push({ad:nevM[1].trim().toUpperCase(),miktar,birim,tarih});return;}}
-    // Cola format: "ÜRÜN ADI   7   Koli   12   84"
-    const colaM=l.match(/^(.+?)\s{2,}(\d+)\s+Koli\s+(\d+)/i);
-    if(colaM){const miktar=parseInt(colaM[2])*parseInt(colaM[3]);results.push({ad:colaM[1].trim().toUpperCase(),miktar,birim:'Adet',tarih});return;}
+    // Coca-Cola e-İrsaliye: "AÇIKLAMA  7  Koli  24  168" → son sayı = toplam adet
+    const colaM=l.match(/^(.+?)\s{2,}(\d+)\s+Koli\s+(\d+)\s+(\d+)\s*$/i);
+    if(colaM){const miktar=parseInt(colaM[4]);results.push({ad:colaM[1].trim().toUpperCase(),miktar,birim:'Adet',tarih});return;}
+    // Eski Cola format (toplam sütunu yok): "ÜRÜN ADI   7   Koli   12"
+    const colaM2=l.match(/^(.+?)\s{2,}(\d+)\s+Koli\s+(\d+)/i);
+    if(colaM2){const miktar=parseInt(colaM2[2])*parseInt(colaM2[3]);results.push({ad:colaM2[1].trim().toUpperCase(),miktar,birim:'Adet',tarih});return;}
     // Obaşak format: "ÜRÜN ADI   120 Adet" veya "ÜRÜN ADI   15 Kg"
     const obM=l.match(/^(.+?)\s{2,}(\d+(?:[.,]\d+)?)\s*(Adet|Kg|Lt|kg|lt|adet)/i);
     if(obM){const miktar=parseFloat(obM[2].replace(',','.'));results.push({ad:obM[1].trim().toUpperCase(),miktar,birim:obM[3],tarih});return;}
@@ -409,10 +412,10 @@ function autoMapFatura(ad){
   if(/STİCK.*PEYNİR|STICK.*PEYNIR|PEYNIR.*STİCK/.test(a))return 12;
   // Kızartma Yağı
   if(/FRITÖZ|FRITEUSE|FRITOZ|KIZARTMA.*YAĞ|YAĞ.*KIZARTMA|FRİTÖZ/.test(a))return 15;
-  // İçecekler
-  if(/COLA|FANTA|FUSE|SPRITE|SCHWEPPES|CAPPY|CC\b/.test(a)&&!/1[.,]?5|2[.,]?5|1 ?LT|LİTRE/.test(a))return 18;
+  // İçecekler — CC kutu (330ml, 300ml RB, şişe) → kutu içecekler
+  if(/CC.*PET.*1[Ll]|CC PET 1|COCA.*COLA.*1[Ll]|1[Ll].*COLA|PET.*1L/.test(a))return 20;
+  if(/CC\b|COLA|FANTA|FUSE|SPRITE|SCHWEPPES|CAPPY|COCA.COLA|RB300|KUTU.*330|330.*KUTU/.test(a)&&!/1[.,]?5|2[.,]?5/.test(a))return 18;
   if(/SODA|GAZOZ|MEYVELİ SODA|MEYVELI/.test(a))return 19;
-  if(/1 ?LT|1[.,]5\s*LT|2[.,]?5\s*LT|BÜYÜK.*COLA|COCA.*COLA.*1/.test(a))return 20;
   if(/SU\b|DAMLA/.test(a)&&!/SODA/.test(a))return 19;
   return -1;
 }

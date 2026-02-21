@@ -386,8 +386,9 @@ async function faturaFotoOku(input){
       logger:m=>{if(m.status==='recognizing text'){status.innerHTML=`⏳ %${Math.round(m.progress*100)} okunuyor...`;}}
     });
     document.getElementById('fatura-text').value=text;
-    status.innerHTML='✅ Metin okundu, analiz edebilirsiniz';
+    status.innerHTML='✅ Metin okundu — analiz ediliyor...';
     status.style.color='#27ae60';
+    analizFatura();
   }catch(e){
     status.innerHTML='❌ Okuma başarısız, metni elle yapıştırın';
     status.style.color='#e74c3c';

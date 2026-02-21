@@ -1,5 +1,5 @@
-const CACHE = 'ercan-brgr-v1';
-const FILES = ['/', '/index.html'];
+const CACHE = 'ercan-brgr-v3';
+const FILES = ['/envanter-site/', '/envanter-site/index.html', '/envanter-site/icon.svg'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)));

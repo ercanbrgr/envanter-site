@@ -1,4 +1,4 @@
-const CACHE = 'ercan-brgr-v8';
+const CACHE = 'ercan-brgr-v9';
 const FILES = ['/envanter-site/', '/envanter-site/index.html', '/envanter-site/icon.svg'];
 
 self.addEventListener('install', e => {

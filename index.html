@@ -262,7 +262,14 @@ td.fz{background:#f5f5f5;color:#999;font-weight:700}
       <h3 style="margin:0;font-size:16px">🧾 Fatura / İrsaliye Yükle</h3>
       <button onclick="closeFaturaModal()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#aaa;line-height:1">✕</button>
     </div>
-    <div style="font-size:12px;color:#aaa;margin-bottom:10px">Fatura veya e-İrsaliye metnini yapıştırın. Ürünleri algılayıp "Gelen" hanesine ekleyeceğiz.</div>
+    <div style="font-size:12px;color:#aaa;margin-bottom:10px">Fatura veya e-İrsaliye metnini yapıştırın ya da fotoğraf yükleyin.</div>
+    <div style="margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap">
+      <label style="flex:1;min-width:140px;padding:10px;background:#f0eaf6;border:2px dashed #8e44ad;border-radius:10px;text-align:center;cursor:pointer;font-size:13px;font-weight:700;color:#8e44ad">
+        📷 Fotoğraf / Dosya Seç
+        <input type="file" accept="image/*" capture="environment" id="fatura-foto" style="display:none" onchange="faturaFotoOku(this)">
+      </label>
+      <div id="fatura-ocr-status" style="flex:1;min-width:140px;padding:10px;background:#f8f8f8;border-radius:10px;font-size:12px;color:#aaa;display:flex;align-items:center;justify-content:center">Fotoğraf seçilmedi</div>
+    </div>
     <textarea id="fatura-text" rows="8" style="width:100%;padding:10px;border:2px solid #eee;border-radius:8px;font-size:11px;font-family:monospace;resize:vertical;outline:none;margin-bottom:10px" placeholder="Fatura veya e-İrsaliye metnini buraya yapıştırın..." onfocus="this.style.borderColor='#8e44ad'" onblur="this.style.borderColor='#eee'"></textarea>
     <button onclick="analizFatura()" style="width:100%;padding:12px;background:#8e44ad;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:12px">Analiz Et →</button>
     <div id="fatura-sonuc"></div>
@@ -289,6 +296,7 @@ td.fz{background:#f5f5f5;color:#999;font-weight:700}
 </div>
 <div id="toast"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script>
 const SUPA_URL='https://gqhfxpczgxksbfybfesz.supabase.co';
 const SUPA_KEY='sb_publishable_0L6Pcm4GYzaEyIQ8Dup-6A_LqT-Z-FS';
@@ -367,6 +375,24 @@ let adminSecAy='tumu';
 function adminAcUrun(userId,sira,secAy){adminSecAy=secAy||'tumu';const profil=adminData.profiller.find(p=>p.user_id===userId);const urun=adminData.urunler.find(u=>u.user_id===userId&&u.sira===sira);const tumGirdiler=adminData.girdiler.filter(g=>g.user_id===userId&&g.urun_sira===sira);const birim=urun?.birim||'Adet';const months=[...new Set(tumGirdiler.filter(g=>g.tarih).map(g=>g.tarih.slice(0,7)))].sort().reverse();const girdiler=adminSecAy==='tumu'?tumGirdiler:tumGirdiler.filter(g=>g.tarih&&g.tarih.startsWith(adminSecAy));const ayLabel=adminSecAy==='tumu'?'Tümü':monthLabel(adminSecAy);let html=`<div class="admin-panel"><div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap"><button onclick="adminAcSube('${userId}')" style="background:var(--dark);color:#fff;border:none;border-radius:8px;padding:8px 14px;cursor:pointer;font-size:13px;font-weight:700">← Geri</button><h2 style="margin:0;font-size:14px">🏪 ${profil?.sube_adi} › ${urun?.ad}</h2></div><div style="background:#f8f8f8;border-radius:10px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span style="font-size:11px;font-weight:700;color:#999;text-transform:uppercase">Ay Filtresi</span><select onchange="adminAcUrun('${userId}',${sira},this.value)" style="padding:7px 12px;border:2px solid #eee;border-radius:8px;font-size:13px;font-weight:700;outline:none"><option value="tumu" ${adminSecAy==='tumu'?'selected':''}>Tümü</option>${months.map(m=>`<option value="${m}" ${m===adminSecAy?'selected':''}>${monthLabel(m)}</option>`).join('')}</select><button id="admin-csv-btn" style="padding:7px 14px;background:var(--orange);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">CSV İndir</button><button onclick="window.print()" style="padding:7px 14px;background:var(--dark);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">Yazdır</button><span style="font-size:12px;color:#aaa">${girdiler.length} giriş</span></div>`;if(!tumGirdiler.length){html+=`<div class="empty"><div class="ico">📋</div><p>Bu ürün için henüz giriş yok.</p></div>`;}else if(!girdiler.length){html+=`<div class="empty"><div class="ico">📅</div><p>${ayLabel} için giriş yok.</p></div>`;}else{let toplamFark=0,posC=0,negC=0;girdiler.forEach(g=>{const f=calcEntry({acilis:g.acilis,gelen:g.gelen,gelenIade:g.gelen_iade,transfer:g.transfer,kapanis:g.kapanis,mallara:g.mallara_gore,zayi:g.zayi,odenmez:g.odenmez}).fark;toplamFark+=f;if(f>0)posC++;else if(f<0)negC++;});toplamFark=r(toplamFark);const fc=toplamFark>0?'green':toplamFark<0?'red':'';html+=`<div class="stats-row" style="margin-bottom:12px"><div class="stat-card orange"><div class="sl">${ayLabel} Gün</div><div class="sv">${girdiler.length}</div></div><div class="stat-card ${fc}"><div class="sl">${ayLabel} Fark</div><div class="sv">${toplamFark>0?'+':''}${toplamFark}</div></div><div class="stat-card"><div class="sl">+ / - Gün</div><div class="sv" style="font-size:16px"><span style="color:#27ae60">+${posC}</span> / <span style="color:#e74c3c">${negC}</span></div></div></div><div class="table-card"><div class="table-scroll"><table><thead><tr><th>Gün</th><th>Tarih</th><th>Açılış<br>(${birim})</th><th>Gelen</th><th>G.İade</th><th>Transfer</th><th>Kapanış<br>(${birim})</th><th>Sayıma Göre<br>Kullanılan</th><th>Mallara Göre<br>Satılan</th><th>Zayi</th><th>Ödenmez</th><th>FARK</th></tr></thead><tbody>`;girdiler.forEach(g=>{const e={acilis:g.acilis,gelen:g.gelen,gelenIade:g.gelen_iade,transfer:g.transfer,kapanis:g.kapanis,mallara:g.mallara_gore,zayi:g.zayi,odenmez:g.odenmez};const{sayima,fark}=calcEntry(e);const fc2=fark>0?'fp':fark<0?'fn':'fz';html+=`<tr><td>${g.gun||''}</td><td>${g.tarih||''}</td><td>${g.acilis||''}</td><td>${g.gelen||''}</td><td>${g.gelen_iade||''}</td><td>${g.transfer||''}</td><td>${g.kapanis||''}</td><td class="calc">${sayima}</td><td>${g.mallara_gore||''}</td><td>${g.zayi||''}</td><td>${g.odenmez||''}</td><td class="${fc2}">${fark>0?'+':''}${fark}</td></tr>`;});html+=`</tbody></table></div></div>`;}html+=`</div>`;document.getElementById('page-content').innerHTML=html;const csvBtn=document.getElementById('admin-csv-btn');if(csvBtn)csvBtn.onclick=()=>adminExportCSV(userId,sira,adminSecAy);}
 function adminExportCSV(userId,sira,secAy){const profil=adminData.profiller.find(p=>p.user_id===userId);const urun=adminData.urunler.find(u=>u.user_id===userId&&u.sira===sira);const tumGirdiler=adminData.girdiler.filter(g=>g.user_id===userId&&g.urun_sira===sira);const girdiler=secAy==='tumu'?tumGirdiler:tumGirdiler.filter(g=>g.tarih&&g.tarih.startsWith(secAy));if(!girdiler.length){toast('Bu dönemde giriş yok');return;}const ayLabel=secAy==='tumu'?'Tüm_Aylar':monthLabel(secAy).replace(/\s/g,'_');const esc=v=>{const s=String(v??'');return(s.includes(';')||s.includes('"'))?'"'+s.replace(/"/g,'""')+'"':s;};const cols=['Sube','Urun','Gun','Tarih','Acilis','Gelen','Gelen_Iade','Transfer','Kapanis','Sayima_Gore_Kullanilan','Mallara_Gore_Satilan','Zayi','Odenmez','FARK'];let csv=cols.join(';')+'\n';girdiler.forEach(g=>{const{sayima,fark}=calcEntry({acilis:g.acilis,gelen:g.gelen,gelenIade:g.gelen_iade,transfer:g.transfer,kapanis:g.kapanis,mallara:g.mallara_gore,zayi:g.zayi,odenmez:g.odenmez});csv+=[profil?.sube_adi,urun?.ad,g.gun,g.tarih,g.acilis||0,g.gelen||0,g.gelen_iade||0,g.transfer||0,g.kapanis||0,sayima,g.mallara_gore||0,g.zayi||0,g.odenmez||0,fark].map(esc).join(';')+'\n';});const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'}));a.download=((profil?.sube_adi||'')+'_'+(urun?.ad||'')+'_'+ayLabel).replace(/[\s\/\\:*?"<>|]/g,'_')+'.csv';a.click();toast('Excel dosyası indirildi ✓');}
 let faturaAnalizSonucu=[];
+async function faturaFotoOku(input){
+  const file=input.files[0];
+  if(!file)return;
+  const status=document.getElementById('fatura-ocr-status');
+  status.innerHTML='⏳ Fotoğraf okunuyor...';
+  status.style.color='#e67e22';
+  try{
+    const{data:{text}}=await Tesseract.recognize(file,'tur+eng',{
+      logger:m=>{if(m.status==='recognizing text'){status.innerHTML=`⏳ %${Math.round(m.progress*100)} okunuyor...`;}}
+    });
+    document.getElementById('fatura-text').value=text;
+    status.innerHTML='✅ Metin okundu, analiz edebilirsiniz';
+    status.style.color='#27ae60';
+  }catch(e){
+    status.innerHTML='❌ Okuma başarısız, metni elle yapıştırın';
+    status.style.color='#e74c3c';
+  }
+}
 function openFaturaModal(){document.getElementById('fatura-modal').classList.add('show');document.getElementById('fatura-sonuc').innerHTML='';document.getElementById('fatura-text').value='';}
 function closeFaturaModal(){document.getElementById('fatura-modal').classList.remove('show');}
 function parseFaturaLines(text){

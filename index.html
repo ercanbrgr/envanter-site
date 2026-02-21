@@ -410,9 +410,14 @@ function autoMapFatura(ad){
   const a=ad.toUpperCase();
   // Et / Köfte
   if(/KÖFTE.*JOKER|JOKER.*KÖFTE|KÖFTE.*85|85.*KÖFTE/.test(a))return 1;
-  if(/KÖFTE.*120|120.*KÖFTE|BURGER KÖFTE/.test(a)&&!/85|JOKER/.test(a))return 2;
-  if(/KÖFTE.*150|150.*KÖFTE|DANA KÖFTE/.test(a)&&!/85|120/.test(a))return 3;
-  if(/KÖFTE|KIYMA|DANA/.test(a)&&!/JOKER|85|120|150/.test(a))return 1;
+  if(/KÖFTE.*120|120.*KÖFTE|BURGER KÖFTE/.test(a)&&!/85|JOKER|150|SPECIAL|SPECİAL/.test(a))return 2;
+  if(/SPECIAL.*150|SPECİAL.*150|KÖFTE.*SPECIAL|KÖFTE.*SPECİAL/.test(a))return 4;
+  if(/KÖFTE.*150|150.*KÖFTE|DANA KÖFTE/.test(a)&&!/85|120|SPECIAL|SPECİAL/.test(a))return 3;
+  if(/KÖFTE|KIYMA|DANA/.test(a)&&!/JOKER|85|120|150|SPECIAL/.test(a))return 1;
+  // Tavuk
+  if(/TAVUK.*TENDER|TENDERS|TENDER.*TAVUK/.test(a))return 7;
+  if(/MINI TAVUK|MİNİ TAVUK/.test(a))return 5;
+  if(/TAVUK BURGER|BURGER.*TAVUK/.test(a))return 6;
   // Ekmek — Obaşak
   if(/MİNİ EKMEK|MINI EKMEK|MİNİ BUN|MINI BUN|SLIDER BUN|DOĞAL MİNİ|DOGAL MINI/.test(a))return 17;
   if(/HAMBURGER EKMEK|BURGER BUN|80.?GR.*EKMEK|EKMEK.*80|MİNİ JOKER.*85|JOKER.*85.*GRAM|85.*GRAM/.test(a))return 16;

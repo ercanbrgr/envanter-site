@@ -377,6 +377,9 @@ function parseFaturaLines(text){
     // Nevada e-İrsaliye: "1  25.01EC.E18.0002  BURGER KÖFTESİ 120GR (1 Koli = 20,5 KG)  20,5"
     const nevM=l.match(/^\d+\s+[\w.]+\s+(.+?)\s+([\d.,]+)\s*$/);
     if(nevM){const miktar=parseFloat(nevM[2].replace(',','.'));if(miktar>0){const birim=/kg|kilo/i.test(nevM[1])?'Kg':/lt|litre/i.test(nevM[1])?'Lt':'Adet';results.push({ad:nevM[1].trim().toUpperCase(),miktar,birim,tarih});return;}}
+    // Obaşak e-İrsaliye: "1  ST477  MİNİ JOKER 85 GRAM  144 Adet"
+    const obasM=l.match(/^\d+\s+[A-Z]+\d+\s+(.+?)\s+(\d+)\s+Adet\s*$/i);
+    if(obasM){const miktar=parseInt(obasM[2]);if(miktar>0){results.push({ad:obasM[1].trim().toUpperCase(),miktar,birim:'Adet',tarih});return;}}
     // Uludağ e-İrsaliye: "BARKOD  ÜRÜNKODU  LİMONATA 33CL PET 24TV  1,00  Koli  885,95 ..."
     const uldM=l.match(/^[A-Z0-9]+\s+[A-Z0-9]+\s+(.+?)\s+([\d.,]+)\s+Koli\b/i);
     if(uldM){
@@ -410,9 +413,9 @@ function autoMapFatura(ad){
   if(/KÖFTE.*120|120.*KÖFTE|BURGER KÖFTE/.test(a)&&!/85|JOKER/.test(a))return 2;
   if(/KÖFTE.*150|150.*KÖFTE|DANA KÖFTE/.test(a)&&!/85|120/.test(a))return 3;
   if(/KÖFTE|KIYMA|DANA/.test(a)&&!/JOKER|85|120|150/.test(a))return 1;
-  // Ekmek
-  if(/MİNİ EKMEK|MINI EKMEK|MİNİ BUN|MINI BUN|SLIDER BUN/.test(a))return 17;
-  if(/HAMBURGER EKMEK|BURGER BUN|80.?GR.*EKMEK|EKMEK.*80/.test(a))return 16;
+  // Ekmek — Obaşak
+  if(/MİNİ EKMEK|MINI EKMEK|MİNİ BUN|MINI BUN|SLIDER BUN|DOĞAL MİNİ|DOGAL MINI/.test(a))return 17;
+  if(/HAMBURGER EKMEK|BURGER BUN|80.?GR.*EKMEK|EKMEK.*80|MİNİ JOKER.*85|JOKER.*85.*GRAM|85.*GRAM/.test(a))return 16;
   // Patates / Dondurulmuş
   if(/PATATES|POM|MC.?CAIN|DONDURULMUŞ PATATES|FROZEN.*POTATO/.test(a))return 8;
   // Nugget

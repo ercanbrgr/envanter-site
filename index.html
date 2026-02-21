@@ -127,7 +127,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5;min-height:100vh
   .product-item{padding:10px 12px!important;font-size:13px!important}
   .product-item:hover{background:rgba(255,150,50,0.15)!important;cursor:pointer}
 }
-#content::before{content:'ERCAN\ABRGR';position:fixed;bottom:20px;right:20px;font-size:52px;font-weight:900;line-height:0.85;color:rgba(232,57,10,0.06);pointer-events:none;z-index:0;letter-spacing:2px;text-align:right;white-space:pre}
+#content::before{content:'ERCAN\ABRGR';position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-15deg);font-size:120px;font-weight:900;line-height:0.85;color:rgba(232,57,10,0.04);pointer-events:none;z-index:0;letter-spacing:4px;text-align:center;white-space:pre;user-select:none}
 @media(min-width:600px){.stats-row{grid-template-columns:repeat(4,1fr)}}
 .stat-card{background:#fff;border-radius:12px;padding:12px 14px;border-left:4px solid var(--orange);box-shadow:0 1px 4px rgba(0,0,0,0.06)}
 .stat-card .sl{font-size:10px;color:#999;font-weight:600;text-transform:uppercase}
@@ -302,19 +302,23 @@ td.fz{background:#f5f5f5;color:#999;font-weight:700}
   </div>
   <div id="drawer-overlay" onclick="closeDrawer()"></div>
   <div id="drawer">
-    <div id="drawer-header">
-      <div>
-        <div class="brand" style="line-height:1;padding:2px 0">
-          <div style="font-size:13px;font-weight:900;color:#FFB800;letter-spacing:2px">ERCAN</div>
-          <div style="font-size:26px;font-weight:900;color:#E8390A;letter-spacing:1px;margin-top:-4px">BRGR</div>
-          <div style="font-size:9px;font-weight:700;color:rgba(255,255,255,0.5);letter-spacing:3px;margin-top:-2px">ENVANTER</div>
+    <div id="drawer-header" style="padding:18px 16px 14px">
+      <div style="width:100%">
+        <div class="brand" style="line-height:1;padding:0">
+          <div style="font-size:17px;font-weight:900;color:#FFB800;letter-spacing:3px;text-shadow:0 0 20px rgba(255,184,0,0.4)">ERCAN</div>
+          <div style="font-size:38px;font-weight:900;color:#E8390A;letter-spacing:2px;margin-top:-6px;text-shadow:0 2px 12px rgba(232,57,10,0.4)">BRGR</div>
+          <div style="font-size:8px;font-weight:800;color:rgba(255,255,255,0.4);letter-spacing:5px;margin-top:-4px">ENVANTER SİSTEMİ</div>
         </div>
-        <div id="drawer-sube-info" style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.9);margin-top:6px;border-top:1px solid rgba(255,255,255,0.1);padding-top:6px"></div>
-        <div id="drawer-user-info" style="font-size:10px;color:rgba(255,255,255,0.45);margin-top:1px"></div>
+        <div style="height:1px;background:linear-gradient(90deg,rgba(232,57,10,0.4),transparent);margin:10px 0"></div>
+        <div id="drawer-sube-info" style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.9)"></div>
+        <div id="drawer-user-info" style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px"></div>
       </div>
       <button id="drawer-close" onclick="closeDrawer()">&#10005;</button>
     </div>
     <div id="drawer-search"><input type="text" id="search-input" placeholder="Ürün ara..." oninput="filterProducts()"></div>
+    <div id="product-list-header" onclick="toggleProductList()" style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px;cursor:pointer;background:rgba(255,255,255,0.05);font-size:11px;font-weight:700;color:rgba(255,255,255,0.6);letter-spacing:1px;text-transform:uppercase;user-select:none">
+      <span>📦 ÜRÜNLER</span><span id="product-list-arrow">▲</span>
+    </div>
     <div id="product-list"></div>
     <div class="drawer-footer">
       <button class="drawer-btn drawer-btn-orange" id="sube-adi-btn" onclick="openSubeModal()" style="display:none">Şube Adını Değiştir</button>
@@ -425,6 +429,7 @@ function toggleDrawer(){document.getElementById('drawer').classList.toggle('open
 function closeDrawer(){document.getElementById('drawer').classList.remove('open');document.getElementById('drawer-overlay').classList.remove('open');}
 function renderSidebar(filter=''){const list=document.getElementById('product-list');list.innerHTML='';if(isAdmin){const div=document.createElement('div');div.className='product-item'+(currentProduct===-1?' active':'');div.innerHTML='<span class="num">⭐</span><span class="pname">Admin Paneli</span>';div.onclick=()=>{currentProduct=-1;showAddForm=false;renderAdminPanel();closeDrawer();};list.appendChild(div);}appData.products.forEach((p,i)=>{if(filter&&!p.name.toLowerCase().includes(filter.toLowerCase()))return;const lastKapanis=p.entries.length?parseFloat(p.entries[p.entries.length-1].kapanis||''):null;const uyari=p.minStok!==null&&lastKapanis!==null&&lastKapanis<p.minStok;const div=document.createElement('div');div.className='product-item'+(i===currentProduct?' active':'');div.style.display='flex';div.style.alignItems='center';div.style.gap='4px';const moveHtml=isAdmin?`<span style="display:flex;flex-direction:column;gap:1px;flex-shrink:0"><button onclick="event.stopPropagation();moveProduct(${i},-1)" style="background:none;border:none;color:#aaa;cursor:pointer;font-size:10px;padding:0;line-height:1" title="Yukarı">▲</button><button onclick="event.stopPropagation();moveProduct(${i},1)" style="background:none;border:none;color:#aaa;cursor:pointer;font-size:10px;padding:0;line-height:1" title="Aşağı">▼</button></span>`:'';div.innerHTML=moveHtml+`<span class="num">${i+1}</span><span class="pname">${p.name}${uyari?` <span style="color:#e74c3c;font-size:10px;font-weight:700">⚠️ AZ</span>`:''}</span>${p.entries.length?`<span class="badge">${p.entries.length}</span>`:''}`;div.onclick=()=>{currentProduct=i;showAddForm=false;renderSidebar(document.getElementById('search-input').value);renderPage();closeDrawer();};list.appendChild(div);});}
 async function moveProduct(i,dir){const j=i+dir;if(j<0||j>=appData.products.length)return;const a=appData.products[i],b=appData.products[j];const tmpSira=a.sira;a.sira=b.sira;b.sira=tmpSira;appData.products[i]=b;appData.products[j]=a;await sb.from('urunler').update({sira:a.sira}).eq('id',a.id);await sb.from('urunler').update({sira:b.sira}).eq('id',b.id);if(currentProduct===i)currentProduct=j;else if(currentProduct===j)currentProduct=i;renderSidebar(document.getElementById('search-input').value);renderPage();}
+function toggleProductList(){const list=document.getElementById('product-list');const arrow=document.getElementById('product-list-arrow');const hidden=list.style.display==='none';list.style.display=hidden?'':'none';arrow.textContent=hidden?'▲':'▼';}
 function filterProducts(){renderSidebar(document.getElementById('search-input').value);}
 document.addEventListener('keydown',function(e){
   if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;

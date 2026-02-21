@@ -377,6 +377,17 @@ function parseFaturaLines(text){
     // Nevada e-İrsaliye: "1  25.01EC.E18.0002  BURGER KÖFTESİ 120GR (1 Koli = 20,5 KG)  20,5"
     const nevM=l.match(/^\d+\s+[\w.]+\s+(.+?)\s+([\d.,]+)\s*$/);
     if(nevM){const miktar=parseFloat(nevM[2].replace(',','.'));if(miktar>0){const birim=/kg|kilo/i.test(nevM[1])?'Kg':/lt|litre/i.test(nevM[1])?'Lt':'Adet';results.push({ad:nevM[1].trim().toUpperCase(),miktar,birim,tarih});return;}}
+    // Uludağ e-İrsaliye: "BARKOD  ÜRÜNKODU  LİMONATA 33CL PET 24TV  1,00  Koli  885,95 ..."
+    const uldM=l.match(/^[A-Z0-9]+\s+[A-Z0-9]+\s+(.+?)\s+([\d.,]+)\s+Koli\b/i);
+    if(uldM){
+      const ad=uldM[1].trim().toUpperCase();
+      const koli=parseFloat(uldM[2].replace(',','.'));
+      let ici=24;
+      const tvM=ad.match(/(\d+)TV/i);if(tvM)ici=parseInt(tvM[1]);
+      const bsM=ad.match(/(\d+)BSX(\d+)/i);if(bsM)ici=parseInt(bsM[1])*parseInt(bsM[2]);
+      const miktar=Math.round(koli*ici);
+      results.push({ad,miktar,birim:'Adet',tarih});return;
+    }
     // Coca-Cola e-İrsaliye: "AÇIKLAMA  7  Koli  24  168" → son sayı = toplam adet
     const colaM=l.match(/^(.+?)\s{2,}(\d+)\s+Koli\s+(\d+)\s+(\d+)\s*$/i);
     if(colaM){const miktar=parseInt(colaM[4]);results.push({ad:colaM[1].trim().toUpperCase(),miktar,birim:'Adet',tarih});return;}
@@ -415,6 +426,10 @@ function autoMapFatura(ad){
   // İçecekler — CC kutu (330ml, 300ml RB, şişe) → kutu içecekler
   if(/CC.*PET.*1[Ll]|CC PET 1|COCA.*COLA.*1[Ll]|1[Ll].*COLA|PET.*1L/.test(a))return 20;
   if(/CC\b|COLA|FANTA|FUSE|SPRITE|SCHWEPPES|CAPPY|COCA.COLA|RB300|KUTU.*330|330.*KUTU/.test(a)&&!/1[.,]?5|2[.,]?5/.test(a))return 18;
+  // Uludağ içecekleri
+  if(/MADEN SUYU|FRUTTI|FRUTTİ|KAYNAK SUYU|PRE\.KAY|EFS\.PORT|PORTAKAL.*100|SU.*40CL/.test(a))return 19;
+  if(/LİMONATA.*33|LİMONATA.*33|EFS.*GAZOZ.*33|EFS.*PORT.*33|GAZOZ.*33CL/.test(a))return 18;
+  if(/LİMONATA.*100|EFS.*GAZOZ.*100|EFS.*PORT.*100|LİMONATA.*1L/.test(a))return 20;
   if(/SODA|GAZOZ|MEYVELİ SODA|MEYVELI/.test(a))return 19;
   if(/SU\b|DAMLA/.test(a)&&!/SODA/.test(a))return 19;
   return -1;

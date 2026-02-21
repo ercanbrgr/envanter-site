@@ -409,6 +409,7 @@ function parseFaturaLines(text){
 function autoMapFatura(ad){
   const a=ad.toUpperCase();
   // Et / Köfte
+  if(/KÖFTE.*MİNİ|MİNİ.*KÖFTE|KÖFTE.*50|50.*KÖFTE|MİNİ.*50GR|50GR.*MİNİ/.test(a))return 0;
   if(/KÖFTE.*JOKER|JOKER.*KÖFTE|KÖFTE.*85|85.*KÖFTE/.test(a))return 1;
   if(/KÖFTE.*120|120.*KÖFTE|BURGER KÖFTE/.test(a)&&!/85|JOKER|150|SPECIAL|SPECİAL/.test(a))return 2;
   if(/SPECIAL.*150|SPECİAL.*150|KÖFTE.*SPECIAL|KÖFTE.*SPECİAL/.test(a))return 4;
@@ -423,6 +424,8 @@ function autoMapFatura(ad){
   if(/HAMBURGER EKMEK|BURGER BUN|80.?GR.*EKMEK|EKMEK.*80|MİNİ JOKER.*85|JOKER.*85.*GRAM|85.*GRAM/.test(a))return 16;
   // Patates / Dondurulmuş
   if(/PATATES|POM|MC.?CAIN|DONDURULMUŞ PATATES|FROZEN.*POTATO/.test(a))return 8;
+  // Füme
+  if(/FÜME|FUME|DİLİMLİ.*DANA|DANA.*DİLİMLİ|SUCUK|PASTIRMA/.test(a))return 14;
   // Nugget
   if(/NUGGET/.test(a))return 9;
   // Soğan Halkası

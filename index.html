@@ -116,6 +116,17 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5;min-height:100vh
 .admin-badge{background:#f39c12;color:#fff;font-size:9px;font-weight:900;padding:2px 6px;border-radius:8px;letter-spacing:1px;text-transform:uppercase}
 #content{flex:1;padding:12px;overflow-x:hidden}
 .stats-row{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px}
+@media(min-width:768px){
+  #drawer{left:0!important;position:fixed;top:0;bottom:0;width:260px;z-index:50;transition:none}
+  #drawer-overlay{display:none!important}
+  #drawer-close{display:none!important}
+  #topbar{left:260px!important}
+  #content{margin-left:260px!important}
+  #bottom-nav{left:260px!important}
+  #search-input{font-size:14px!important;padding:10px 14px!important}
+  .product-item{padding:10px 12px!important;font-size:13px!important}
+  .product-item:hover{background:rgba(255,150,50,0.15)!important;cursor:pointer}
+}
 @media(min-width:600px){.stats-row{grid-template-columns:repeat(4,1fr)}}
 .stat-card{background:#fff;border-radius:12px;padding:12px 14px;border-left:4px solid var(--orange);box-shadow:0 1px 4px rgba(0,0,0,0.06)}
 .stat-card .sl{font-size:10px;color:#999;font-weight:600;text-transform:uppercase}
@@ -407,6 +418,13 @@ function closeDrawer(){document.getElementById('drawer').classList.remove('open'
 function renderSidebar(filter=''){const list=document.getElementById('product-list');list.innerHTML='';if(isAdmin){const div=document.createElement('div');div.className='product-item'+(currentProduct===-1?' active':'');div.innerHTML='<span class="num">⭐</span><span class="pname">Admin Paneli</span>';div.onclick=()=>{currentProduct=-1;showAddForm=false;renderAdminPanel();closeDrawer();};list.appendChild(div);}appData.products.forEach((p,i)=>{if(filter&&!p.name.toLowerCase().includes(filter.toLowerCase()))return;const lastKapanis=p.entries.length?parseFloat(p.entries[p.entries.length-1].kapanis||''):null;const uyari=p.minStok!==null&&lastKapanis!==null&&lastKapanis<p.minStok;const div=document.createElement('div');div.className='product-item'+(i===currentProduct?' active':'');div.style.display='flex';div.style.alignItems='center';div.style.gap='4px';const moveHtml=isAdmin?`<span style="display:flex;flex-direction:column;gap:1px;flex-shrink:0"><button onclick="event.stopPropagation();moveProduct(${i},-1)" style="background:none;border:none;color:#aaa;cursor:pointer;font-size:10px;padding:0;line-height:1" title="Yukarı">▲</button><button onclick="event.stopPropagation();moveProduct(${i},1)" style="background:none;border:none;color:#aaa;cursor:pointer;font-size:10px;padding:0;line-height:1" title="Aşağı">▼</button></span>`:'';div.innerHTML=moveHtml+`<span class="num">${i+1}</span><span class="pname">${p.name}${uyari?` <span style="color:#e74c3c;font-size:10px;font-weight:700">⚠️ AZ</span>`:''}</span>${p.entries.length?`<span class="badge">${p.entries.length}</span>`:''}`;div.onclick=()=>{currentProduct=i;showAddForm=false;renderSidebar(document.getElementById('search-input').value);renderPage();closeDrawer();};list.appendChild(div);});}
 async function moveProduct(i,dir){const j=i+dir;if(j<0||j>=appData.products.length)return;const a=appData.products[i],b=appData.products[j];const tmpSira=a.sira;a.sira=b.sira;b.sira=tmpSira;appData.products[i]=b;appData.products[j]=a;await sb.from('urunler').update({sira:a.sira}).eq('id',a.id);await sb.from('urunler').update({sira:b.sira}).eq('id',b.id);if(currentProduct===i)currentProduct=j;else if(currentProduct===j)currentProduct=i;renderSidebar(document.getElementById('search-input').value);renderPage();}
 function filterProducts(){renderSidebar(document.getElementById('search-input').value);}
+document.addEventListener('keydown',function(e){
+  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;
+  if(e.key==='/'||e.key==='f'&&!e.ctrlKey&&!e.metaKey){e.preventDefault();const s=document.getElementById('search-input');if(s){s.focus();s.select();}}
+  if(e.key==='ArrowDown'&&currentProduct<appData.products.length-1){currentProduct++;showAddForm=false;renderSidebar(document.getElementById('search-input').value);renderPage();}
+  if(e.key==='ArrowUp'&&currentProduct>0){currentProduct--;showAddForm=false;renderSidebar(document.getElementById('search-input').value);renderPage();}
+  if(e.key==='Escape'){const s=document.getElementById('search-input');if(s){s.value='';filterProducts();}}
+});
 function n(v){return parseFloat(String(v).replace(',','.'))||0;}
 function r(v){return Math.round(v*100)/100;}
 function calcEntry(e){const a=n(e.acilis),g=n(e.gelen),gi=n(e.gelenIade),t=n(e.transfer),k=n(e.kapanis),m=n(e.mallara),z=n(e.zayi),o=n(e.odenmez);const sayima=r(a+g-gi-t-k);return{sayima,fark:r(m-sayima+z+o)};}

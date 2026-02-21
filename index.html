@@ -434,15 +434,19 @@ function autoMapFatura(ad){
   if(/STİCK.*PEYNİR|STICK.*PEYNIR|PEYNIR.*STİCK/.test(a))return 12;
   // Kızartma Yağı
   if(/FRITÖZ|FRITEUSE|FRITOZ|KIZARTMA.*YAĞ|YAĞ.*KIZARTMA|FRİTÖZ/.test(a))return 15;
-  // İçecekler — CC kutu (330ml, 300ml RB, şişe) → kutu içecekler
-  if(/CC.*PET.*1[Ll]|CC PET 1|COCA.*COLA.*1[Ll]|1[Ll].*COLA|PET.*1L/.test(a))return 20;
-  if(/CC\b|COLA|FANTA|FUSE|SPRITE|SCHWEPPES|CAPPY|COCA.COLA|RB300|KUTU.*330|330.*KUTU/.test(a)&&!/1[.,]?5|2[.,]?5/.test(a))return 18;
-  // Uludağ içecekleri
-  if(/MADEN SUYU|FRUTTI|FRUTTİ|KAYNAK SUYU|PRE\.KAY|EFS\.PORT|PORTAKAL.*100|SU.*40CL/.test(a))return 19;
-  if(/LİMONATA.*33|LİMONATA.*33|EFS.*GAZOZ.*33|EFS.*PORT.*33|GAZOZ.*33CL/.test(a))return 18;
-  if(/LİMONATA.*100|EFS.*GAZOZ.*100|EFS.*PORT.*100|LİMONATA.*1L/.test(a))return 20;
+  // Uludağ: Frutti, meyveli → soda grubu; su/maden suyu → atla
+  if(/MADEN SUYU|KAYNAK SUYU|PRE\.KAY|SU.*40CL|SU\b|DAMLA|MN\.SADE/.test(a))return -1;
+  if(/FRUTTI|FRUTTİ/.test(a))return 19;
+  // Uludağ: 33CL içecekler → kutu
+  if(/LİMONATA.*33|EFS.*GAZOZ.*33|EFS.*PORT.*33|GAZOZ.*33CL/.test(a))return 18;
+  // Uludağ: 100CL → 1 litrelik
+  if(/LİMONATA.*100|EFS.*GAZOZ.*100|EFS.*PORT.*100/.test(a))return 20;
+  // İçecekler — 1 Litrelik önce kontrol et
+  if(/CC.*PET.*1[Ll]|CC PET 1|COCA.*COLA.*1[Ll]|PET.*1L|SPR.*PET.*1L|SPR.*1L|SPR PET1L/.test(a))return 20;
+  // Kutu/şişe (330ml, 300ml) → kutu içecekler
+  if(/CC\b|COLA|FANTA|FUSE|SCHWEPPES|CAPPY|COCA.COLA|RB300|KUTU.*330|330.*KUTU|FT\b|FT |\bSPR\b|SPR KUTU|SPRITE/.test(a)&&!/1[.,]?5|2[.,]?5|PET1L|PET 1L/.test(a))return 18;
+  // Soda, gazoz, maden suyu, damla
   if(/SODA|GAZOZ|MEYVELİ SODA|MEYVELI/.test(a))return 19;
-  if(/SU\b|DAMLA/.test(a)&&!/SODA/.test(a))return 19;
   return -1;
 }
 function analizFatura(){

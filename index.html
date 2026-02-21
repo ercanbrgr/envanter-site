@@ -297,6 +297,7 @@ td.fz{background:#f5f5f5;color:#999;font-weight:700}
 <div id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 <script>
 const SUPA_URL='https://gqhfxpczgxksbfybfesz.supabase.co';
 const SUPA_KEY='sb_publishable_0L6Pcm4GYzaEyIQ8Dup-6A_LqT-Z-FS';
@@ -366,11 +367,164 @@ document.getElementById('rename-input').addEventListener('keydown',e=>{if(e.key=
 function exportData(){const p=appData.products[currentProduct];if(!p)return;const doFilter=selectedMonth&&selectedMonth!=='tumu';const entries=doFilter?p.entries.filter(e=>e.tarih&&e.tarih.startsWith(selectedMonth)):p.entries;if(!entries.length){toast('Bu dönemde giriş yok');return;}const ayLabel=doFilter?monthLabel(selectedMonth):'Tüm_Aylar';const esc=v=>{const s=String(v??'');return(s.includes(',')||s.includes('"'))?'"'+s.replace(/"/g,'""')+'"':s;};const cols=['Gun','Tarih','Acilis','Gelen','Gelen_Iade','Transfer','Kapanis','Sayima_Gore_Kullanilan','Mallara_Gore_Satilan','Zayi','Odenmez','FARK'];let csv=cols.join(';')+'\n';entries.forEach(e=>{const{sayima,fark}=calcEntry(e);csv+=[e.gun,e.tarih,e.acilis||0,e.gelen||0,e.gelenIade||0,e.transfer||0,e.kapanis||0,sayima,e.mallara||0,e.zayi||0,e.odenmez||0,fark].map(esc).join(';')+'\n';});const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'}));a.download=(p.name+'_'+ayLabel).replace(/[\s\/\\:*?"<>|]/g,'_')+'.csv';a.click();toast('Excel dosyası indirildi ✓');}
 let adminData={profiller:[],urunler:[],girdiler:[]},adminSecilenSube=null,adminSecilenUrun=null;
 async function renderAdminPanel(){currentProduct=-1;document.getElementById('product-name-display').textContent='Admin Paneli';document.getElementById('topbar-sub').textContent='Tüm şubeler';document.getElementById('page-content').innerHTML='<div class="empty"><div class="ico">⏳</div><p>Şubeler yükleniyor...</p></div>';const{data:profiller,error}=await sb.from('sube_profiller').select('*');if(error){document.getElementById('page-content').innerHTML='<div class="empty"><p>Veri yüklenemedi: '+error.message+'</p></div>';return;}if(!profiller||!profiller.length){document.getElementById('page-content').innerHTML='<div class="empty"><div class="ico">🏪</div><p>Henüz kayıtlı şube yok.</p></div>';return;}const{data:tumGirdiler,error:ge}=await sb.from('gunluk_girdiler').select('*');const{data:tumUrunler,error:ue}=await sb.from('urunler').select('*').order('sira');if(ge){toast('Girdiler yüklenemedi: '+ge.message,5000);}if(ue){toast('Ürünler yüklenemedi: '+ue.message,5000);}adminData={profiller,urunler:tumUrunler||[],girdiler:tumGirdiler||[]};adminSecilenSube=null;adminSecilenUrun=null;renderAdminAnaSayfa();}
-function renderAdminAnaSayfa(){const{profiller,urunler,girdiler}=adminData;let html=`<div class="admin-panel"><h2>⭐ Admin Paneli <span class="admin-badge">TÜM ŞUBELER</span></h2><div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap"><button onclick="renderAdminAnaSayfa()" style="padding:8px 14px;background:var(--orange);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">🏪 Şubeler</button><button onclick="renderAdminAylikRapor()" style="padding:8px 14px;background:var(--dark);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">📊 Aylık Rapor</button><button onclick="adminTumCSV()" style="padding:8px 14px;background:#27ae60;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">📥 Tüm Veriyi İndir</button></div><div style="font-size:12px;color:#999;margin-bottom:12px">${profiller.length} şube kayıtlı — şubeye tıklayın</div>`;profiller.forEach(p=>{const pUrunler=urunler.filter(u=>u.user_id===p.user_id);const pGirdiler=girdiler.filter(g=>g.user_id===p.user_id);let toplamFark=0;pGirdiler.forEach(g=>{const e={acilis:g.acilis,gelen:g.gelen,gelenIade:g.gelen_iade,transfer:g.transfer,kapanis:g.kapanis,mallara:g.mallara_gore,zayi:g.zayi,odenmez:g.odenmez};toplamFark+=calcEntry(e).fark;});toplamFark=r(toplamFark);const fc=toplamFark>0?'s-green':toplamFark<0?'s-red':'';html+=`<div class="sube-card-admin" onclick="adminAcSube('${p.user_id}')"><h3>🏪 ${p.sube_adi} <span style="font-size:11px;color:#aaa;font-weight:400">→ tıkla</span></h3><div class="sube-stats"><div class="sube-stat">${pUrunler.length} ürün</div><div class="sube-stat">${pGirdiler.length} giriş</div><div class="sube-stat ${fc}">${toplamFark>0?'+':''}${toplamFark} fark</div></div></div>`;});html+=`</div>`;document.getElementById('page-content').innerHTML=html;}
+function renderAdminAnaSayfa(){
+  const{profiller,urunler,girdiler}=adminData;
+  // Genel istatistikler
+  const bugun=new Date().toISOString().slice(0,10);
+  const bugunGiris=girdiler.filter(g=>g.tarih===bugun).length;
+  const buAy=new Date().toISOString().slice(0,7);
+  const buAyGiris=girdiler.filter(g=>g.tarih&&g.tarih.startsWith(buAy)).length;
+  // En çok kayıp ürünler
+  const urunFarklar={};
+  girdiler.forEach(g=>{
+    const key=g.user_id+'_'+g.urun_sira;
+    const urun=urunler.find(u=>u.user_id===g.user_id&&u.sira===g.urun_sira);
+    if(!urun)return;
+    const f=calcEntry({acilis:g.acilis,gelen:g.gelen,gelenIade:g.gelen_iade,transfer:g.transfer,kapanis:g.kapanis,mallara:g.mallara_gore,zayi:g.zayi,odenmez:g.odenmez}).fark;
+    if(!urunFarklar[urun.ad])urunFarklar[urun.ad]=0;
+    urunFarklar[urun.ad]+=f;
+  });
+  const topKayip=Object.entries(urunFarklar).filter(([,f])=>f<0).sort(([,a],[,b])=>a-b).slice(0,5);
+  const topArtı=Object.entries(urunFarklar).filter(([,f])=>f>0).sort(([,a],[,b])=>b-a).slice(0,5);
+  let html=`<div class="admin-panel">
+  <h2>⭐ Admin Paneli <span class="admin-badge">TÜM ŞUBELER</span></h2>
+  <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+    <button onclick="renderAdminAnaSayfa()" style="padding:8px 14px;background:var(--orange);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">🏪 Şubeler</button>
+    <button onclick="renderAdminAylikRapor()" style="padding:8px 14px;background:var(--dark);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">📊 Aylık Rapor</button>
+    <button onclick="adminTumExcel()" style="padding:8px 14px;background:#27ae60;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">📥 Excel İndir</button>
+  </div>
+  <div class="stats-row" style="margin-bottom:16px">
+    <div class="stat-card orange"><div class="sl">Toplam Şube</div><div class="sv">${profiller.length}</div></div>
+    <div class="stat-card"><div class="sl">Bugün Giriş</div><div class="sv">${bugunGiris}</div></div>
+    <div class="stat-card"><div class="sl">Bu Ay Giriş</div><div class="sv">${buAyGiris}</div></div>
+    <div class="stat-card"><div class="sl">Toplam Kayıt</div><div class="sv">${girdiler.length}</div></div>
+  </div>`;
+  // Kayıp/Artı özeti
+  if(topKayip.length||topArtı.length){
+    html+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+    <div style="background:#fff5f5;border:1px solid #fcc;border-radius:10px;padding:12px">
+      <div style="font-size:12px;font-weight:700;color:#e74c3c;margin-bottom:8px">📉 En Çok Kayıp Ürünler</div>
+      ${topKayip.map(([ad,f])=>`<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid #fee"><span>${ad}</span><span style="color:#e74c3c;font-weight:700">${r(f)}</span></div>`).join('')}
+    </div>
+    <div style="background:#f0fff4;border:1px solid #9f9;border-radius:10px;padding:12px">
+      <div style="font-size:12px;font-weight:700;color:#27ae60;margin-bottom:8px">📈 En Çok Fazla Ürünler</div>
+      ${topArtı.map(([ad,f])=>`<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid #dfd"><span>${ad}</span><span style="color:#27ae60;font-weight:700">+${r(f)}</span></div>`).join('')}
+    </div></div>`;
+  }
+  html+=`<div style="font-size:12px;color:#999;margin-bottom:10px">${profiller.length} şube — şubeye tıklayın</div>`;
+  profiller.forEach(p=>{
+    const pGirdiler=girdiler.filter(g=>g.user_id===p.user_id);
+    const pUrunler=urunler.filter(u=>u.user_id===p.user_id);
+    const buAyFark=r(pGirdiler.filter(g=>g.tarih&&g.tarih.startsWith(buAy)).reduce((s,g)=>s+calcEntry({acilis:g.acilis,gelen:g.gelen,gelenIade:g.gelen_iade,transfer:g.transfer,kapanis:g.kapanis,mallara:g.mallara_gore,zayi:g.zayi,odenmez:g.odenmez}).fark,0));
+    const topFark=r(pGirdiler.reduce((s,g)=>s+calcEntry({acilis:g.acilis,gelen:g.gelen,gelenIade:g.gelen_iade,transfer:g.transfer,kapanis:g.kapanis,mallara:g.mallara_gore,zayi:g.zayi,odenmez:g.odenmez}).fark,0));
+    const sonGiris=pGirdiler.filter(g=>g.tarih).sort((a,b)=>b.tarih.localeCompare(a.tarih))[0]?.tarih||'—';
+    const fc=topFark>0?'s-green':topFark<0?'s-red':'';
+    const fcAy=buAyFark>0?'#27ae60':buAyFark<0?'#e74c3c':'#aaa';
+    html+=`<div class="sube-card-admin" onclick="adminAcSube('${p.user_id}')">
+      <h3>🏪 ${p.sube_adi} <span style="font-size:11px;color:#aaa;font-weight:400">→ tıkla</span></h3>
+      <div class="sube-stats">
+        <div class="sube-stat">${pUrunler.length} ürün</div>
+        <div class="sube-stat">${pGirdiler.length} kayıt</div>
+        <div class="sube-stat" style="color:${fcAy}">Bu ay: ${buAyFark>0?'+':''}${buAyFark}</div>
+        <div class="sube-stat ${fc}">Toplam: ${topFark>0?'+':''}${topFark}</div>
+        <div class="sube-stat" style="color:#aaa">Son: ${sonGiris}</div>
+      </div>
+    </div>`;
+  });
+  html+=`</div>`;
+  document.getElementById('page-content').innerHTML=html;
+}
 function adminAcSube(userId){adminSecilenSube=userId;adminSecilenUrun=null;const profil=adminData.profiller.find(p=>p.user_id===userId);const urunler=adminData.urunler.filter(u=>u.user_id===userId);const girdiler=adminData.girdiler.filter(g=>g.user_id===userId);let html=`<div class="admin-panel"><div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><button onclick="renderAdminAnaSayfa()" style="background:var(--dark);color:#fff;border:none;border-radius:8px;padding:8px 14px;cursor:pointer;font-size:13px;font-weight:700">← Geri</button><h2 style="margin:0">🏪 ${profil?.sube_adi||'Şube'}</h2></div><div style="font-size:12px;color:#999;margin-bottom:12px">${urunler.length} ürün — bir ürüne tıklayarak girişleri görün</div>`;urunler.forEach(u=>{const uGirdiler=girdiler.filter(g=>g.urun_sira===u.sira);let toplamFark=0;uGirdiler.forEach(g=>{const e={acilis:g.acilis,gelen:g.gelen,gelenIade:g.gelen_iade,transfer:g.transfer,kapanis:g.kapanis,mallara:g.mallara_gore,zayi:g.zayi,odenmez:g.odenmez};toplamFark+=calcEntry(e).fark;});toplamFark=r(toplamFark);const fc=toplamFark>0?'s-green':toplamFark<0?'s-red':'';html+=`<div class="sube-card-admin" onclick="adminAcUrun('${userId}',${u.sira})"><h3>${u.sira+1}. ${u.ad} <span style="font-size:10px;color:#aaa">(${u.birim})</span></h3><div class="sube-stats"><div class="sube-stat">${uGirdiler.length} gün</div><div class="sube-stat ${fc}">${toplamFark>0?'+':''}${toplamFark} toplam fark</div></div></div>`;});html+=`</div>`;document.getElementById('page-content').innerHTML=html;}
 function renderAdminAylikRapor(){const{profiller,urunler,girdiler}=adminData;const months=[...new Set(girdiler.filter(g=>g.tarih).map(g=>g.tarih.slice(0,7)))].sort().reverse();let html=`<div class="admin-panel"><div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap"><button onclick="renderAdminAnaSayfa()" style="padding:8px 14px;background:var(--dark);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">← Geri</button><h2 style="margin:0;align-self:center">📊 Aylık Rapor</h2></div>`;if(!months.length){html+=`<div class="empty"><div class="ico">📅</div><p>Henüz tarihli giriş yok.</p></div>`;}else{months.forEach(ay=>{const ayGirdiler=girdiler.filter(g=>g.tarih&&g.tarih.startsWith(ay));let toplamFark=0,toplamSatilan=0,toplamSayima=0;ayGirdiler.forEach(g=>{const e={acilis:g.acilis,gelen:g.gelen,gelenIade:g.gelen_iade,transfer:g.transfer,kapanis:g.kapanis,mallara:g.mallara_gore,zayi:g.zayi,odenmez:g.odenmez};const{sayima,fark}=calcEntry(e);toplamFark+=fark;toplamSatilan+=n(g.mallara_gore);toplamSayima+=sayima;});toplamFark=r(toplamFark);toplamSatilan=r(toplamSatilan);toplamSayima=r(toplamSayima);const subeSet=new Set(ayGirdiler.map(g=>g.user_id));const fc=toplamFark>0?'s-green':toplamFark<0?'s-red':'';html+=`<div class="sube-card-admin" style="cursor:default"><h3>📅 ${monthLabel(ay)}</h3><div class="sube-stats"><div class="sube-stat">${subeSet.size} şube aktif</div><div class="sube-stat">${ayGirdiler.length} giriş</div><div class="sube-stat">Satılan: ${toplamSatilan}</div><div class="sube-stat">Sayıma: ${toplamSayima}</div><div class="sube-stat ${fc}">${toplamFark>0?'+':''}${toplamFark} fark</div></div><div style="margin-top:8px"><button onclick="adminAyCSV('${ay}')" style="padding:5px 12px;background:var(--orange);color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">Excel İndir</button></div></div>`;});}html+=`</div>`;document.getElementById('page-content').innerHTML=html;}
 function adminAyCSV(ay){const{profiller,urunler,girdiler}=adminData;const ayGirdiler=girdiler.filter(g=>g.tarih&&g.tarih.startsWith(ay));if(!ayGirdiler.length){toast('Bu ayda giriş yok');return;}const esc=v=>{const s=String(v??'');return(s.includes(';')||s.includes('"'))?'"'+s.replace(/"/g,'""')+'"':s;};const cols=['Sube','Urun','Gun','Tarih','Acilis','Gelen','Gelen_Iade','Transfer','Kapanis','Sayima_Kullanilan','Mallara_Satilan','Zayi','Odenmez','FARK'];let csv=cols.join(';')+'\n';ayGirdiler.forEach(g=>{const profil=profiller.find(p=>p.user_id===g.user_id);const urun=urunler.find(u=>u.user_id===g.user_id&&u.sira===g.urun_sira);const{sayima,fark}=calcEntry({acilis:g.acilis,gelen:g.gelen,gelenIade:g.gelen_iade,transfer:g.transfer,kapanis:g.kapanis,mallara:g.mallara_gore,zayi:g.zayi,odenmez:g.odenmez});csv+=[profil?.sube_adi,urun?.ad,g.gun,g.tarih,g.acilis||0,g.gelen||0,g.gelen_iade||0,g.transfer||0,g.kapanis||0,sayima,g.mallara_gore||0,g.zayi||0,g.odenmez||0,fark].map(esc).join(';')+'\n';});const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'}));a.download='Tum_Subeler_'+monthLabel(ay).replace(/\s/g,'_')+'.csv';a.click();toast('Excel indirildi ✓');}
-function adminTumCSV(){const{profiller,urunler,girdiler}=adminData;if(!girdiler.length){toast('Veri yok');return;}const esc=v=>{const s=String(v??'');return(s.includes(';')||s.includes('"'))?'"'+s.replace(/"/g,'""')+'"':s;};const cols=['Sube','Urun','Gun','Tarih','Acilis','Gelen','Gelen_Iade','Transfer','Kapanis','Sayima_Kullanilan','Mallara_Satilan','Zayi','Odenmez','FARK'];let csv=cols.join(';')+'\n';girdiler.forEach(g=>{const profil=profiller.find(p=>p.user_id===g.user_id);const urun=urunler.find(u=>u.user_id===g.user_id&&u.sira===g.urun_sira);const{sayima,fark}=calcEntry({acilis:g.acilis,gelen:g.gelen,gelenIade:g.gelen_iade,transfer:g.transfer,kapanis:g.kapanis,mallara:g.mallara_gore,zayi:g.zayi,odenmez:g.odenmez});csv+=[profil?.sube_adi,urun?.ad,g.gun,g.tarih,g.acilis||0,g.gelen||0,g.gelen_iade||0,g.transfer||0,g.kapanis||0,sayima,g.mallara_gore||0,g.zayi||0,g.odenmez||0,fark].map(esc).join(';')+'\n';});const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'}));a.download='BRGR_Tum_Veriler_'+new Date().toISOString().slice(0,10)+'.csv';a.click();toast('Tüm veriler indirildi ✓');}
+function adminTumCSV(){adminTumExcel();}
+function adminAyCSV(ay){adminAyExcel(ay);}
+function xlsxHdr(ws,row,cols){cols.forEach((v,c)=>{const ref=XLSX.utils.encode_cell({r:row,c});ws[ref]={v,t:'s',s:{font:{bold:true,color:{rgb:'FFFFFF'},sz:11},fill:{fgColor:{rgb:'E8590C'}},alignment:{horizontal:'center',wrapText:true},border:{bottom:{style:'thin',color:{rgb:'999999'}}}}}});if(!ws['!ref']){ws['!ref']=XLSX.utils.encode_range({s:{r:0,c:0},e:{r:row,c:cols.length-1}});}return row+1;}
+function xlsxRow(ws,row,vals,isTotal){vals.forEach((v,c)=>{const ref=XLSX.utils.encode_cell({r:row,c});const isNum=typeof v==='number';const isFark=c===vals.length-1;const farkColor=isNum&&isFark?(v>0?'1E8449':v<0?'C0392B':'333333'):'333333';ws[ref]={v:v??'',t:isNum?'n':'s',s:{font:{bold:isTotal||false,color:{rgb:isFark?farkColor:'333333'},sz:10},fill:{fgColor:{rgb:isTotal?'FFF3CD':row%2===0?'FFFFFF':'F9F9F9'}},alignment:{horizontal:isNum?'center':'left'}}};});if(ws['!ref']){const r=XLSX.utils.decode_range(ws['!ref']);r.e.r=Math.max(r.e.r,row);r.e.c=Math.max(r.e.c,vals.length-1);ws['!ref']=XLSX.utils.encode_range(r);}return row+1;}
+function adminAyExcel(ay){
+  const{profiller,urunler,girdiler}=adminData;
+  const ayGirdiler=girdiler.filter(g=>g.tarih&&g.tarih.startsWith(ay));
+  if(!ayGirdiler.length){toast('Bu ayda giriş yok');return;}
+  const wb=XLSX.utils.book_new();
+  const basliklar=['Şube','Ürün','Birim','Gün','Tarih','Açılış','Gelen','G.İade','Transfer','Kapanış','Sayıma Göre','Mallara Göre','Zayi','Ödenmez','FARK'];
+  // Özet sayfası
+  const ozWs={};let ozRow=0;
+  ozRow=xlsxHdr(ozWs,ozRow,['Şube','Ürün','Toplam Fark','Gün Sayısı']);
+  let ozTopFark=0;
+  profiller.forEach(p=>{
+    const pG=ayGirdiler.filter(g=>g.user_id===p.user_id);
+    if(!pG.length)return;
+    urunler.filter(u=>u.user_id===p.user_id).forEach(u=>{
+      const uG=pG.filter(g=>g.urun_sira===u.sira);
+      if(!uG.length)return;
+      const fark=r(uG.reduce((s,g)=>s+calcEntry({acilis:g.acilis,gelen:g.gelen,gelenIade:g.gelen_iade,transfer:g.transfer,kapanis:g.kapanis,mallara:g.mallara_gore,zayi:g.zayi,odenmez:g.odenmez}).fark,0));
+      ozRow=xlsxRow(ozWs,ozRow,[p.sube_adi,u.ad,fark,uG.length]);
+      ozTopFark+=fark;
+    });
+  });
+  ozRow=xlsxRow(ozWs,ozRow,['','TOPLAM',r(ozTopFark),''],true);
+  ozWs['!cols']=[{wch:20},{wch:22},{wch:14},{wch:10}];
+  XLSX.utils.book_append_sheet(wb,ozWs,'ÖZET');
+  // Her şube ayrı sayfa
+  profiller.forEach(p=>{
+    const pG=ayGirdiler.filter(g=>g.user_id===p.user_id);
+    if(!pG.length)return;
+    const ws={};let row=0;
+    row=xlsxHdr(ws,row,basliklar);
+    let topFark=0;
+    pG.forEach(g=>{
+      const urun=urunler.find(u=>u.user_id===p.user_id&&u.sira===g.urun_sira);
+      const{sayima,fark}=calcEntry({acilis:g.acilis,gelen:g.gelen,gelenIade:g.gelen_iade,transfer:g.transfer,kapanis:g.kapanis,mallara:g.mallara_gore,zayi:g.zayi,odenmez:g.odenmez});
+      topFark+=fark;
+      row=xlsxRow(ws,row,[p.sube_adi,urun?.ad||'',urun?.birim||'',g.gun,g.tarih,n(g.acilis),n(g.gelen),n(g.gelen_iade),n(g.transfer),n(g.kapanis),sayima,n(g.mallara_gore),n(g.zayi),n(g.odenmez),fark]);
+    });
+    row=xlsxRow(ws,row,['','','','','','','','','','','','','','TOPLAM FARK',r(topFark)],true);
+    ws['!cols']=basliklar.map((_,i)=>({wch:[16,22,8,6,12,10,10,8,10,10,12,12,8,10,10][i]||10}));
+    const sheetName=(p.sube_adi||'Sube').slice(0,31).replace(/[\/\\?*\[\]]/g,'');
+    XLSX.utils.book_append_sheet(wb,ws,sheetName);
+  });
+  XLSX.writeFile(wb,`BRGR_${monthLabel(ay).replace(/\s/g,'_')}.xlsx`);
+  toast('Excel indirildi ✓');
+}
+function adminTumExcel(){
+  const{profiller,urunler,girdiler}=adminData;
+  if(!girdiler.length){toast('Veri yok');return;}
+  const months=[...new Set(girdiler.filter(g=>g.tarih).map(g=>g.tarih.slice(0,7)))].sort().reverse();
+  if(months.length===1){adminAyExcel(months[0]);return;}
+  const wb=XLSX.utils.book_new();
+  const basliklar=['Şube','Ürün','Birim','Gün','Tarih','Açılış','Gelen','G.İade','Transfer','Kapanış','Sayıma Göre','Mallara Göre','Zayi','Ödenmez','FARK'];
+  // Özet sayfası
+  const ozWs={};let ozRow=0;
+  ozRow=xlsxHdr(ozWs,ozRow,['Ay','Şube Sayısı','Toplam Giriş','Toplam Fark']);
+  months.forEach(ay=>{
+    const ayG=girdiler.filter(g=>g.tarih&&g.tarih.startsWith(ay));
+    const fark=r(ayG.reduce((s,g)=>s+calcEntry({acilis:g.acilis,gelen:g.gelen,gelenIade:g.gelen_iade,transfer:g.transfer,kapanis:g.kapanis,mallara:g.mallara_gore,zayi:g.zayi,odenmez:g.odenmez}).fark,0));
+    const subeSet=new Set(ayG.map(g=>g.user_id));
+    ozRow=xlsxRow(ozWs,ozRow,[monthLabel(ay),subeSet.size,ayG.length,fark]);
+  });
+  ozWs['!cols']=[{wch:16},{wch:12},{wch:14},{wch:14}];
+  XLSX.utils.book_append_sheet(wb,ozWs,'ÖZET');
+  // Her ay ayrı sayfa
+  months.slice(0,12).forEach(ay=>{
+    const ayG=girdiler.filter(g=>g.tarih&&g.tarih.startsWith(ay));
+    if(!ayG.length)return;
+    const ws={};let row=0;
+    row=xlsxHdr(ws,row,basliklar);
+    let topFark=0;
+    ayG.forEach(g=>{
+      const profil=profiller.find(p=>p.user_id===g.user_id);
+      const urun=urunler.find(u=>u.user_id===g.user_id&&u.sira===g.urun_sira);
+      const{sayima,fark}=calcEntry({acilis:g.acilis,gelen:g.gelen,gelenIade:g.gelen_iade,transfer:g.transfer,kapanis:g.kapanis,mallara:g.mallara_gore,zayi:g.zayi,odenmez:g.odenmez});
+      topFark+=fark;
+      row=xlsxRow(ws,row,[profil?.sube_adi||'',urun?.ad||'',urun?.birim||'',g.gun,g.tarih,n(g.acilis),n(g.gelen),n(g.gelen_iade),n(g.transfer),n(g.kapanis),sayima,n(g.mallara_gore),n(g.zayi),n(g.odenmez),fark]);
+    });
+    row=xlsxRow(ws,row,['','','','','','','','','','','','','','TOPLAM FARK',r(topFark)],true);
+    ws['!cols']=basliklar.map((_,i)=>({wch:[16,22,8,6,12,10,10,8,10,10,12,12,8,10,10][i]||10}));
+    XLSX.utils.book_append_sheet(wb,ws,monthLabel(ay).replace(/\s/g,'_').slice(0,31));
+  });
+  XLSX.writeFile(wb,'BRGR_Tum_Veriler_'+new Date().toISOString().slice(0,10)+'.xlsx');
+  toast('Tüm veriler Excel olarak indirildi ✓');
+}
 let adminSecAy='tumu';
 function adminAcUrun(userId,sira,secAy){adminSecAy=secAy||'tumu';const profil=adminData.profiller.find(p=>p.user_id===userId);const urun=adminData.urunler.find(u=>u.user_id===userId&&u.sira===sira);const tumGirdiler=adminData.girdiler.filter(g=>g.user_id===userId&&g.urun_sira===sira);const birim=urun?.birim||'Adet';const months=[...new Set(tumGirdiler.filter(g=>g.tarih).map(g=>g.tarih.slice(0,7)))].sort().reverse();const girdiler=adminSecAy==='tumu'?tumGirdiler:tumGirdiler.filter(g=>g.tarih&&g.tarih.startsWith(adminSecAy));const ayLabel=adminSecAy==='tumu'?'Tümü':monthLabel(adminSecAy);let html=`<div class="admin-panel"><div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap"><button onclick="adminAcSube('${userId}')" style="background:var(--dark);color:#fff;border:none;border-radius:8px;padding:8px 14px;cursor:pointer;font-size:13px;font-weight:700">← Geri</button><h2 style="margin:0;font-size:14px">🏪 ${profil?.sube_adi} › ${urun?.ad}</h2></div><div style="background:#f8f8f8;border-radius:10px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span style="font-size:11px;font-weight:700;color:#999;text-transform:uppercase">Ay Filtresi</span><select onchange="adminAcUrun('${userId}',${sira},this.value)" style="padding:7px 12px;border:2px solid #eee;border-radius:8px;font-size:13px;font-weight:700;outline:none"><option value="tumu" ${adminSecAy==='tumu'?'selected':''}>Tümü</option>${months.map(m=>`<option value="${m}" ${m===adminSecAy?'selected':''}>${monthLabel(m)}</option>`).join('')}</select><button id="admin-csv-btn" style="padding:7px 14px;background:var(--orange);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">CSV İndir</button><button onclick="window.print()" style="padding:7px 14px;background:var(--dark);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">Yazdır</button><span style="font-size:12px;color:#aaa">${girdiler.length} giriş</span></div>`;if(!tumGirdiler.length){html+=`<div class="empty"><div class="ico">📋</div><p>Bu ürün için henüz giriş yok.</p></div>`;}else if(!girdiler.length){html+=`<div class="empty"><div class="ico">📅</div><p>${ayLabel} için giriş yok.</p></div>`;}else{let toplamFark=0,posC=0,negC=0;girdiler.forEach(g=>{const f=calcEntry({acilis:g.acilis,gelen:g.gelen,gelenIade:g.gelen_iade,transfer:g.transfer,kapanis:g.kapanis,mallara:g.mallara_gore,zayi:g.zayi,odenmez:g.odenmez}).fark;toplamFark+=f;if(f>0)posC++;else if(f<0)negC++;});toplamFark=r(toplamFark);const fc=toplamFark>0?'green':toplamFark<0?'red':'';html+=`<div class="stats-row" style="margin-bottom:12px"><div class="stat-card orange"><div class="sl">${ayLabel} Gün</div><div class="sv">${girdiler.length}</div></div><div class="stat-card ${fc}"><div class="sl">${ayLabel} Fark</div><div class="sv">${toplamFark>0?'+':''}${toplamFark}</div></div><div class="stat-card"><div class="sl">+ / - Gün</div><div class="sv" style="font-size:16px"><span style="color:#27ae60">+${posC}</span> / <span style="color:#e74c3c">${negC}</span></div></div></div><div class="table-card"><div class="table-scroll"><table><thead><tr><th>Gün</th><th>Tarih</th><th>Açılış<br>(${birim})</th><th>Gelen</th><th>G.İade</th><th>Transfer</th><th>Kapanış<br>(${birim})</th><th>Sayıma Göre<br>Kullanılan</th><th>Mallara Göre<br>Satılan</th><th>Zayi</th><th>Ödenmez</th><th>FARK</th></tr></thead><tbody>`;girdiler.forEach(g=>{const e={acilis:g.acilis,gelen:g.gelen,gelenIade:g.gelen_iade,transfer:g.transfer,kapanis:g.kapanis,mallara:g.mallara_gore,zayi:g.zayi,odenmez:g.odenmez};const{sayima,fark}=calcEntry(e);const fc2=fark>0?'fp':fark<0?'fn':'fz';html+=`<tr><td>${g.gun||''}</td><td>${g.tarih||''}</td><td>${g.acilis||''}</td><td>${g.gelen||''}</td><td>${g.gelen_iade||''}</td><td>${g.transfer||''}</td><td>${g.kapanis||''}</td><td class="calc">${sayima}</td><td>${g.mallara_gore||''}</td><td>${g.zayi||''}</td><td>${g.odenmez||''}</td><td class="${fc2}">${fark>0?'+':''}${fark}</td></tr>`;});html+=`</tbody></table></div></div>`;}html+=`</div>`;document.getElementById('page-content').innerHTML=html;const csvBtn=document.getElementById('admin-csv-btn');if(csvBtn)csvBtn.onclick=()=>adminExportCSV(userId,sira,adminSecAy);}
 function adminExportCSV(userId,sira,secAy){const profil=adminData.profiller.find(p=>p.user_id===userId);const urun=adminData.urunler.find(u=>u.user_id===userId&&u.sira===sira);const tumGirdiler=adminData.girdiler.filter(g=>g.user_id===userId&&g.urun_sira===sira);const girdiler=secAy==='tumu'?tumGirdiler:tumGirdiler.filter(g=>g.tarih&&g.tarih.startsWith(secAy));if(!girdiler.length){toast('Bu dönemde giriş yok');return;}const ayLabel=secAy==='tumu'?'Tüm_Aylar':monthLabel(secAy).replace(/\s/g,'_');const esc=v=>{const s=String(v??'');return(s.includes(';')||s.includes('"'))?'"'+s.replace(/"/g,'""')+'"':s;};const cols=['Sube','Urun','Gun','Tarih','Acilis','Gelen','Gelen_Iade','Transfer','Kapanis','Sayima_Gore_Kullanilan','Mallara_Gore_Satilan','Zayi','Odenmez','FARK'];let csv=cols.join(';')+'\n';girdiler.forEach(g=>{const{sayima,fark}=calcEntry({acilis:g.acilis,gelen:g.gelen,gelenIade:g.gelen_iade,transfer:g.transfer,kapanis:g.kapanis,mallara:g.mallara_gore,zayi:g.zayi,odenmez:g.odenmez});csv+=[profil?.sube_adi,urun?.ad,g.gun,g.tarih,g.acilis||0,g.gelen||0,g.gelen_iade||0,g.transfer||0,g.kapanis||0,sayima,g.mallara_gore||0,g.zayi||0,g.odenmez||0,fark].map(esc).join(';')+'\n';});const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'}));a.download=((profil?.sube_adi||'')+'_'+(urun?.ad||'')+'_'+ayLabel).replace(/[\s\/\\:*?"<>|]/g,'_')+'.csv';a.click();toast('Excel dosyası indirildi ✓');}

@@ -369,14 +369,15 @@ function closeFaturaModal(){document.getElementById('fatura-modal').classList.re
 function parseFaturaLines(text){
   const results=[];
   const lines=text.split('\n');
-  // Format 1: Obaşak e-İrsaliye → "STOK ADI   MIKTAR Adet"
-  // Format 2: Cola e-İrsaliye → "MALZEME ADI   KOLI   KG   KOLI_ICI_ADET   TOPLAM"
   const tarihM=text.match(/(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})/);
   const tarih=tarihM?`${tarihM[3]}-${tarihM[2].padStart(2,'0')}-${tarihM[1].padStart(2,'0')}`:new Date().toISOString().slice(0,10);
   lines.forEach(line=>{
     const l=line.trim();
     if(!l||l.length<5)return;
-    // Cola format: satır içinde koli ve adet var → "ÜRÜN ADI   7   Koli   12   84"
+    // Nevada e-İrsaliye: "1  25.01EC.E18.0002  BURGER KÖFTESİ 120GR (1 Koli = 20,5 KG)  20,5"
+    const nevM=l.match(/^\d+\s+[\w.]+\s+(.+?)\s+([\d.,]+)\s*$/);
+    if(nevM){const miktar=parseFloat(nevM[2].replace(',','.'));if(miktar>0){const birim=/kg|kilo/i.test(nevM[1])?'Kg':/lt|litre/i.test(nevM[1])?'Lt':'Adet';results.push({ad:nevM[1].trim().toUpperCase(),miktar,birim,tarih});return;}}
+    // Cola format: "ÜRÜN ADI   7   Koli   12   84"
     const colaM=l.match(/^(.+?)\s{2,}(\d+)\s+Koli\s+(\d+)/i);
     if(colaM){const miktar=parseInt(colaM[2])*parseInt(colaM[3]);results.push({ad:colaM[1].trim().toUpperCase(),miktar,birim:'Adet',tarih});return;}
     // Obaşak format: "ÜRÜN ADI   120 Adet" veya "ÜRÜN ADI   15 Kg"
@@ -390,17 +391,29 @@ function parseFaturaLines(text){
 }
 function autoMapFatura(ad){
   const a=ad.toUpperCase();
-  if(/JOKER.*85|85.*JOKER|MİNİ JOKER|MINI JOKER/.test(a))return 16;
-  if(/MİNİ EKMEK|MINI EKMEK|MINI BUN|MİNİ BUN/.test(a))return 17;
-  if(/COLA|CC |FANTA|FUSE|SPRITE|SCHWEPPES|CAPPY/.test(a)&&!/1[.,]?5|2[.,]?5|1 ?LT|LİTRE/.test(a))return 18;
-  if(/SODA|GAZOZ|MEYVELI/.test(a))return 19;
-  if(/1 ?LT|1[.,]5|2[.,]?5|BÜY[UÜ]K|BÜYÜK/.test(a))return 20;
-  if(/DAMLA|SU\b/.test(a)&&!/SODA/.test(a))return 19;
-  if(/PATATES|POM|MC CAIN/.test(a))return 8;
+  // Et / Köfte
+  if(/KÖFTE.*JOKER|JOKER.*KÖFTE|KÖFTE.*85|85.*KÖFTE/.test(a))return 1;
+  if(/KÖFTE.*120|120.*KÖFTE|BURGER KÖFTE/.test(a)&&!/85|JOKER/.test(a))return 2;
+  if(/KÖFTE.*150|150.*KÖFTE|DANA KÖFTE/.test(a)&&!/85|120/.test(a))return 3;
+  if(/KÖFTE|KIYMA|DANA/.test(a)&&!/JOKER|85|120|150/.test(a))return 1;
+  // Ekmek
+  if(/MİNİ EKMEK|MINI EKMEK|MİNİ BUN|MINI BUN|SLIDER BUN/.test(a))return 17;
+  if(/HAMBURGER EKMEK|BURGER BUN|80.?GR.*EKMEK|EKMEK.*80/.test(a))return 16;
+  // Patates / Dondurulmuş
+  if(/PATATES|POM|MC.?CAIN|DONDURULMUŞ PATATES|FROZEN.*POTATO/.test(a))return 8;
+  // Nugget
   if(/NUGGET/.test(a))return 9;
-  if(/SOGAN|SOĞAN|ONION/.test(a))return 10;
-  if(/YAĞ|YAG|OIL/.test(a))return 15;
-  if(/DANA|KÖFTE|KIYMA|ET\b/.test(a))return 1;
+  // Soğan Halkası
+  if(/SOGAN HALKA|SOĞAN HALKA|ONION RING/.test(a))return 10;
+  // Stick Peynir
+  if(/STİCK.*PEYNİR|STICK.*PEYNIR|PEYNIR.*STİCK/.test(a))return 12;
+  // Kızartma Yağı
+  if(/FRITÖZ|FRITEUSE|FRITOZ|KIZARTMA.*YAĞ|YAĞ.*KIZARTMA|FRİTÖZ/.test(a))return 15;
+  // İçecekler
+  if(/COLA|FANTA|FUSE|SPRITE|SCHWEPPES|CAPPY|CC\b/.test(a)&&!/1[.,]?5|2[.,]?5|1 ?LT|LİTRE/.test(a))return 18;
+  if(/SODA|GAZOZ|MEYVELİ SODA|MEYVELI/.test(a))return 19;
+  if(/1 ?LT|1[.,]5\s*LT|2[.,]?5\s*LT|BÜYÜK.*COLA|COCA.*COLA.*1/.test(a))return 20;
+  if(/SU\b|DAMLA/.test(a)&&!/SODA/.test(a))return 19;
   return -1;
 }
 function analizFatura(){

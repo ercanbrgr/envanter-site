@@ -1,7 +1,7 @@
 ﻿<!DOCTYPE html>
 <html lang="tr">
 <head>
-<script>if(window.location.search.indexOf('v=202602220430')===-1){window.location.replace(window.location.pathname+'?v=202602220430');}</script>
+<script>if(window.location.search.indexOf('v=202602220440')===-1){window.location.replace(window.location.pathname+'?v=202602220440');}</script>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -223,9 +223,17 @@ td.fz{background:#f5f5f5;color:#999;font-weight:700}
   @page{size:A4 landscape;margin:1.5cm}
 }
 .print-only{display:none}
+#brand-watermark{position:fixed;bottom:60px;left:50%;transform:translateX(-50%);font-size:clamp(28px,8vw,52px);font-weight:900;color:rgba(232,93,4,0.06);letter-spacing:6px;white-space:nowrap;pointer-events:none;user-select:none;z-index:0;font-family:'Arial Black',sans-serif}
+#brand-footer{position:fixed;bottom:0;left:0;right:0;height:26px;background:linear-gradient(135deg,#1a1a2e 60%,#2d1a0e);display:flex;align-items:center;justify-content:center;gap:8px;z-index:9999;pointer-events:none;user-select:none;border-top:1px solid rgba(232,93,4,0.35)}
+#brand-footer .bf-logo{font-size:11px;font-weight:900;color:#FFB800;letter-spacing:2px}
+#brand-footer .bf-sep{color:rgba(255,184,0,0.35);font-size:9px}
+#brand-footer .bf-sub{font-size:9px;color:rgba(255,184,0,0.45);letter-spacing:1px}
+#content{padding-bottom:34px}
 </style>
 </head>
 <body>
+<div id="brand-watermark">ERCAN BRGR</div>
+<div id="brand-footer"><span class="bf-logo">ERCAN BRGR</span><span class="bf-sep">●</span><span class="bf-sub">ENVANTER SİSTEMİ</span><span class="bf-sep">●</span><span class="bf-sub">v2026</span></div>
 <div id="auth-screen">
   <div class="auth-card">
     <div class="auth-logo">ERCAN BRGR</div>

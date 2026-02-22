@@ -857,9 +857,7 @@ if('serviceWorker'in navigator&&location.protocol!=='file:'){
       }
     }).catch(()=>{});
 })();
-let deferredPrompt;
-window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;document.getElementById('install-bar').classList.add('show');});
-function installApp(){if(deferredPrompt){deferredPrompt.prompt();deferredPrompt.userChoice.then(()=>{deferredPrompt=null;document.getElementById('install-bar').classList.remove('show');});}}
+// PWA install devre disi - cache sorunu onlemek icin
 window.addEventListener('load',async()=>{showScreen('auth-screen');const{data:{session}}=await sb.auth.getSession();if(session){await onSignedIn(session.user);}else{showScreen('auth-screen');}sb.auth.onAuthStateChange(async(event,session)=>{if(event==='SIGNED_OUT')showScreen('auth-screen');});});
 </script>
 </body>

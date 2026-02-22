@@ -283,14 +283,13 @@ td.fz{background:#f5f5f5;color:#999;font-weight:700}
 
 <div id="app">
   <div id="topbar">
-    <button id="menu-btn" onclick="toggleDrawer()">&#9776;</button>
-    <div id="topbar-title" onclick="openRenameModal()">
-      <span id="product-name-display">Ürün Seçin</span>
-      <span id="topbar-sub" style="font-size:10px;color:#ffb380">Ada tıklayarak değiştir</span>
+    <button id="menu-btn" onclick="toggleDrawer()" title="Ürünler menüsü" style="font-size:24px;min-width:36px">&#9776;</button>
+    <div style="display:flex;flex-direction:column;align-items:flex-start;flex-shrink:0;margin-right:6px">
+      <span style="font-size:11px;font-weight:900;color:#FFB800;letter-spacing:1px;white-space:nowrap;line-height:1.2">ERCAN BRGR</span>
+      <span id="topbar-user" title="Oturum bilgisi" style="font-size:9px;color:#ffb380;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:90px;line-height:1.2"></span>
     </div>
-    <div style="display:flex;flex-direction:column;align-items:flex-end;flex-shrink:0;max-width:110px">
-      <span style="font-size:10px;font-weight:900;color:#FFB800;letter-spacing:1px;white-space:nowrap">ERCAN BRGR</span>
-      <span id="topbar-user" title="Oturum bilgisi" style="font-size:9px;color:#ffb380;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:110px"></span>
+    <div id="topbar-title" onclick="openRenameModal()" style="flex:1;min-width:0">
+      <span id="product-name-display" style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px">Ürün Seçin</span>
     </div>
     <span id="sync-indicator" title="Senkronizasyon durumu">☁️</span>
     <select id="topbar-birim" onchange="saveBirim()" title="Birim">
@@ -316,7 +315,7 @@ td.fz{background:#f5f5f5;color:#999;font-weight:700}
     <div id="product-list-header" onclick="toggleProductList()" style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px;cursor:pointer;background:rgba(255,255,255,0.05);font-size:11px;font-weight:700;color:rgba(255,255,255,0.6);letter-spacing:1px;text-transform:uppercase;user-select:none">
       <span>📦 ÜRÜNLER</span><span id="product-list-arrow">▲</span>
     </div>
-    <div id="product-list"></div>
+    <div id="product-list" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch"></div>
     <div class="drawer-footer">
       <button class="drawer-btn drawer-btn-orange" id="sube-adi-btn" onclick="openSubeModal()" style="display:none">Şube Adını Değiştir</button>
       <button class="drawer-btn" style="background:#e67e22;color:#fff" onclick="setMinStok();closeDrawer()">⚠️ Min Stok Uyarısı Ayarla</button>

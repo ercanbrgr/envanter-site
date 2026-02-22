@@ -1,7 +1,7 @@
 ﻿<!DOCTYPE html>
 <html lang="tr">
 <head>
-<script>if(window.location.search.indexOf('v=202602220720')===-1){window.location.replace(window.location.pathname+'?v=202602220720');}</script>
+<script>if(window.location.search.indexOf('v=202602220730')===-1){window.location.replace(window.location.pathname+'?v=202602220730');}</script>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -191,13 +191,20 @@ td.fz{background:#f5f5f5;color:#999;font-weight:700}
 .modal input{width:100%;padding:12px;border:2px solid #eee;border-radius:8px;font-size:15px;outline:none;margin-bottom:14px}
 .modal input:focus{border-color:var(--orange)}
 .modal-actions{display:flex;gap:8px;justify-content:flex-end}
-.admin-panel{background:#fff;border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,0.06)}
-.admin-panel h2{font-size:16px;color:var(--dark);margin-bottom:14px;font-weight:800;display:flex;align-items:center;gap:8px}
-.sube-card-admin{border:1px solid #eee;border-radius:10px;padding:14px;margin-bottom:10px;cursor:pointer;transition:border-color 0.2s}
-.sube-card-admin:hover{border-color:var(--orange)}
-.sube-card-admin h3{font-size:14px;font-weight:700;color:var(--dark);margin-bottom:4px}
-.sube-stats{display:flex;gap:8px;flex-wrap:wrap}
-.sube-stat{background:#f8f8f8;border-radius:6px;padding:6px 10px;font-size:11px;font-weight:700;color:#555}
+.admin-panel{background:#fff;border-radius:16px;padding:18px;margin-bottom:12px;box-shadow:0 2px 12px rgba(0,0,0,0.08)}
+.admin-panel h2{font-size:16px;color:var(--dark);margin-bottom:16px;font-weight:800;display:flex;align-items:center;gap:8px}
+.admin-kart-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px}
+.admin-kart{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:18px 14px;border:none;border-radius:14px;font-size:13px;font-weight:700;cursor:pointer;text-align:left;transition:transform 0.15s,box-shadow 0.15s;box-shadow:0 3px 10px rgba(0,0,0,0.15);color:#fff;width:100%}
+.admin-kart:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,0,0,0.2)}
+.admin-kart:active{transform:scale(0.97)}
+.admin-kart .kart-ikon{font-size:30px;line-height:1}
+.admin-kart .kart-baslik{font-size:14px;font-weight:800;line-height:1.2}
+.admin-kart .kart-aciklama{font-size:10px;font-weight:400;opacity:0.85;line-height:1.3}
+.sube-card-admin{border:1px solid #eee;border-radius:12px;padding:14px;margin-bottom:10px;cursor:pointer;transition:all 0.2s;background:#fff}
+.sube-card-admin:hover{border-color:var(--orange);box-shadow:0 3px 12px rgba(232,93,4,0.12);transform:translateY(-1px)}
+.sube-card-admin h3{font-size:14px;font-weight:700;color:var(--dark);margin-bottom:6px}
+.sube-stats{display:flex;gap:6px;flex-wrap:wrap}
+.sube-stat{background:#f8f8f8;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:700;color:#555}
 .sube-stat.s-green{background:#eafaf1;color:#27ae60}
 .sube-stat.s-red{background:#fdf2f2;color:#e74c3c}
 #bottom-nav{display:none;position:fixed;bottom:26px;left:0;right:0;background:#fff;border-top:1px solid #eee;padding:8px 16px;box-shadow:0 -2px 10px rgba(0,0,0,0.08);z-index:100}
@@ -515,33 +522,33 @@ function renderAdminAnaSayfa(){
   const topArtı=Object.entries(urunFarklar).filter(([,f])=>f>0).sort(([,a],[,b])=>b-a).slice(0,5);
   let html=`<div class="admin-panel">
   <h2>⭐ Admin Paneli <span class="admin-badge">TÜM ŞUBELER</span></h2>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
-    <button onclick="renderAdminSubeler()" style="display:flex;align-items:center;gap:10px;padding:14px 16px;background:var(--orange);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;text-align:left">
-      <span style="font-size:24px">🏪</span><div><div>Şubeler</div><div style="font-size:10px;font-weight:400;opacity:0.85">Tüm şubeleri gör</div></div>
+  <div class="admin-kart-grid">
+    <button onclick="renderAdminSubeler()" class="admin-kart" style="background:linear-gradient(135deg,#e85d04,#f39c12)">
+      <span class="kart-ikon">🏪</span><span class="kart-baslik">Şubeler</span><span class="kart-aciklama">Tüm şubeleri gör</span>
     </button>
-    <button onclick="renderAdminUrunler()" style="display:flex;align-items:center;gap:10px;padding:14px 16px;background:#e67e22;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;text-align:left">
-      <span style="font-size:24px">📦</span><div><div>Ürünler</div><div style="font-size:10px;font-weight:400;opacity:0.85">Ekle / Sil</div></div>
+    <button onclick="renderAdminUrunler()" class="admin-kart" style="background:linear-gradient(135deg,#e67e22,#f0a500)">
+      <span class="kart-ikon">📦</span><span class="kart-baslik">Ürünler</span><span class="kart-aciklama">Ekle / Sil</span>
     </button>
-    <button onclick="renderAdminAylikRapor()" style="display:flex;align-items:center;gap:10px;padding:14px 16px;background:#1e293b;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;text-align:left">
-      <span style="font-size:24px">📊</span><div><div>Aylık Rapor</div><div style="font-size:10px;font-weight:400;opacity:0.85">Ay bazlı analiz</div></div>
+    <button onclick="renderAdminAylikRapor()" class="admin-kart" style="background:linear-gradient(135deg,#1e293b,#334155)">
+      <span class="kart-ikon">📊</span><span class="kart-baslik">Aylık Rapor</span><span class="kart-aciklama">Ay bazlı analiz</span>
     </button>
-    <button onclick="renderAdminKarsilastirma()" style="display:flex;align-items:center;gap:10px;padding:14px 16px;background:#0891b2;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;text-align:left">
-      <span style="font-size:24px">📈</span><div><div>Karşılaştırma</div><div style="font-size:10px;font-weight:400;opacity:0.85">Şube karşılaştır</div></div>
+    <button onclick="renderAdminKarsilastirma()" class="admin-kart" style="background:linear-gradient(135deg,#0891b2,#06b6d4)">
+      <span class="kart-ikon">📈</span><span class="kart-baslik">Karşılaştırma</span><span class="kart-aciklama">Şube karşılaştır</span>
     </button>
-    <button onclick="adminTumExcel()" style="display:flex;align-items:center;gap:10px;padding:14px 16px;background:#27ae60;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;text-align:left">
-      <span style="font-size:24px">📥</span><div><div>Excel İndir</div><div style="font-size:10px;font-weight:400;opacity:0.85">Tüm veriyi aktar</div></div>
+    <button onclick="adminTumExcel()" class="admin-kart" style="background:linear-gradient(135deg,#27ae60,#2ecc71)">
+      <span class="kart-ikon">📥</span><span class="kart-baslik">Excel İndir</span><span class="kart-aciklama">Tüm veriyi aktar</span>
     </button>
-    <button onclick="renderAdminSubeYonetimi()" style="display:flex;align-items:center;gap:10px;padding:14px 16px;background:#0f766e;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;text-align:left">
-      <span style="font-size:24px">🏗️</span><div><div>Şube Yönetimi</div><div style="font-size:10px;font-weight:400;opacity:0.85">Düzenle / Yönet</div></div>
+    <button onclick="renderAdminSubeYonetimi()" class="admin-kart" style="background:linear-gradient(135deg,#0f766e,#0d9488)">
+      <span class="kart-ikon">🏗️</span><span class="kart-baslik">Şube Yönetimi</span><span class="kart-aciklama">Düzenle / Yönet</span>
     </button>
-    <button onclick="renderAdminYonetimi()" style="display:flex;align-items:center;gap:10px;padding:14px 16px;background:#8e44ad;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;text-align:left">
-      <span style="font-size:24px">👑</span><div><div>Admin Yönetimi</div><div style="font-size:10px;font-weight:400;opacity:0.85">Rol ata / kaldır</div></div>
+    <button onclick="renderAdminYonetimi()" class="admin-kart" style="background:linear-gradient(135deg,#7c3aed,#a855f7)">
+      <span class="kart-ikon">👑</span><span class="kart-baslik">Admin Yönetimi</span><span class="kart-aciklama">Rol ata / kaldır</span>
     </button>
-    <button onclick="renderAdminPdfRapor()" style="display:flex;align-items:center;gap:10px;padding:14px 16px;background:#c0392b;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;text-align:left">
-      <span style="font-size:24px">📄</span><div><div>PDF Rapor</div><div style="font-size:10px;font-weight:400;opacity:0.85">Şube & ürün yazdır</div></div>
+    <button onclick="renderAdminPdfRapor()" class="admin-kart" style="background:linear-gradient(135deg,#c0392b,#e74c3c)">
+      <span class="kart-ikon">📄</span><span class="kart-baslik">PDF Rapor</span><span class="kart-aciklama">Şube & ürün yazdır</span>
     </button>
-    ${isSuperAdmin?`<button onclick="renderSuperKullanicilar()" style="display:flex;align-items:center;gap:10px;padding:14px 16px;background:#c0392b;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;text-align:left">
-      <span style="font-size:24px">👥</span><div><div>Kullanıcılar</div><div style="font-size:10px;font-weight:400;opacity:0.85">Loglar & Mailleri</div></div>
+    ${isSuperAdmin?`<button onclick="renderSuperKullanicilar()" class="admin-kart" style="background:linear-gradient(135deg,#b91c1c,#dc2626)">
+      <span class="kart-ikon">👥</span><span class="kart-baslik">Kullanıcılar</span><span class="kart-aciklama">Loglar & Mailleri</span>
     </button>`:''}
   </div>
   <div class="stats-row" style="margin-bottom:16px">

@@ -1,7 +1,7 @@
 ﻿<!DOCTYPE html>
 <html lang="tr">
 <head>
-<script>if(window.location.search.indexOf('v=202602220520')===-1){window.location.replace(window.location.pathname+'?v=202602220520');}</script>
+<script>if(window.location.search.indexOf('v=202602220530')===-1){window.location.replace(window.location.pathname+'?v=202602220530');}</script>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -514,14 +514,31 @@ function renderAdminAnaSayfa(){
   const topArtı=Object.entries(urunFarklar).filter(([,f])=>f>0).sort(([,a],[,b])=>b-a).slice(0,5);
   let html=`<div class="admin-panel">
   <h2>⭐ Admin Paneli <span class="admin-badge">TÜM ŞUBELER</span></h2>
-  <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
-      <button onclick="renderAdminAnaSayfa()" style="padding:8px 14px;background:var(--orange);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">🏪 Şubeler</button>
-    <button onclick="renderAdminUrunler()" style="padding:8px 14px;background:#e67e22;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">📦 Ürünler</button>
-    <button onclick="renderAdminAylikRapor()" style="padding:8px 14px;background:var(--dark);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">📊 Aylık Rapor</button>
-    <button onclick="renderAdminKarsilastirma()" style="padding:8px 14px;background:#0891b2;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">📈 Karşılaştırma</button>
-    <button onclick="adminTumExcel()" style="padding:8px 14px;background:#27ae60;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">📥 Excel İndir</button>
-    <button onclick="renderAdminYonetimi()" style="padding:8px 14px;background:#8e44ad;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">👑 Admin Yönetimi</button>
-    ${isSuperAdmin?'<button onclick="renderSuperKullanicilar()" style="padding:8px 14px;background:#c0392b;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">👥 Kullanıcılar & Loglar</button>':''}
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+    <button onclick="renderAdminSubeler()" style="display:flex;align-items:center;gap:10px;padding:14px 16px;background:var(--orange);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;text-align:left">
+      <span style="font-size:24px">🏪</span><div><div>Şubeler</div><div style="font-size:10px;font-weight:400;opacity:0.85">Tüm şubeleri gör</div></div>
+    </button>
+    <button onclick="renderAdminUrunler()" style="display:flex;align-items:center;gap:10px;padding:14px 16px;background:#e67e22;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;text-align:left">
+      <span style="font-size:24px">📦</span><div><div>Ürünler</div><div style="font-size:10px;font-weight:400;opacity:0.85">Ekle / Sil</div></div>
+    </button>
+    <button onclick="renderAdminAylikRapor()" style="display:flex;align-items:center;gap:10px;padding:14px 16px;background:#1e293b;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;text-align:left">
+      <span style="font-size:24px">📊</span><div><div>Aylık Rapor</div><div style="font-size:10px;font-weight:400;opacity:0.85">Ay bazlı analiz</div></div>
+    </button>
+    <button onclick="renderAdminKarsilastirma()" style="display:flex;align-items:center;gap:10px;padding:14px 16px;background:#0891b2;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;text-align:left">
+      <span style="font-size:24px">📈</span><div><div>Karşılaştırma</div><div style="font-size:10px;font-weight:400;opacity:0.85">Şube karşılaştır</div></div>
+    </button>
+    <button onclick="adminTumExcel()" style="display:flex;align-items:center;gap:10px;padding:14px 16px;background:#27ae60;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;text-align:left">
+      <span style="font-size:24px">📥</span><div><div>Excel İndir</div><div style="font-size:10px;font-weight:400;opacity:0.85">Tüm veriyi aktar</div></div>
+    </button>
+    <button onclick="renderAdminSubeYonetimi()" style="display:flex;align-items:center;gap:10px;padding:14px 16px;background:#0f766e;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;text-align:left">
+      <span style="font-size:24px">🏗️</span><div><div>Şube Yönetimi</div><div style="font-size:10px;font-weight:400;opacity:0.85">Düzenle / Yönet</div></div>
+    </button>
+    <button onclick="renderAdminYonetimi()" style="display:flex;align-items:center;gap:10px;padding:14px 16px;background:#8e44ad;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;text-align:left">
+      <span style="font-size:24px">👑</span><div><div>Admin Yönetimi</div><div style="font-size:10px;font-weight:400;opacity:0.85">Rol ata / kaldır</div></div>
+    </button>
+    ${isSuperAdmin?`<button onclick="renderSuperKullanicilar()" style="display:flex;align-items:center;gap:10px;padding:14px 16px;background:#c0392b;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;text-align:left">
+      <span style="font-size:24px">👥</span><div><div>Kullanıcılar</div><div style="font-size:10px;font-weight:400;opacity:0.85">Loglar & Mailleri</div></div>
+    </button>`:''}
   </div>
   <div class="stats-row" style="margin-bottom:16px">
     <div class="stat-card orange"><div class="sl">Toplam Şube</div><div class="sv">${profiller.length}</div></div>

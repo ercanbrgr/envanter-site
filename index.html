@@ -1,7 +1,7 @@
 ﻿<!DOCTYPE html>
 <html lang="tr">
 <head>
-<script>if(window.location.search.indexOf('v=202602220820')===-1){window.location.replace(window.location.pathname+'?v=202602220820');}</script>
+<script>if(window.location.search.indexOf('v=202602220825')===-1){window.location.replace(window.location.pathname+'?v=202602220825');}</script>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -505,6 +505,7 @@ document.getElementById('rename-input').addEventListener('keydown',e=>{if(e.key=
 function exportData(){const p=appData.products[currentProduct];if(!p)return;const doFilter=selectedMonth&&selectedMonth!=='tumu';const entries=doFilter?p.entries.filter(e=>e.tarih&&e.tarih.startsWith(selectedMonth)):p.entries;if(!entries.length){toast('Bu dönemde giriş yok');return;}const ayLabel=doFilter?monthLabel(selectedMonth):'Tüm_Aylar';const esc=v=>{const s=String(v??'');return(s.includes(',')||s.includes('"'))?'"'+s.replace(/"/g,'""')+'"':s;};const cols=['Gun','Tarih','Acilis','Gelen','Gelen_Iade','Transfer','Kapanis','Sayima_Gore_Kullanilan','Mallara_Gore_Satilan','Zayi','Odenmez','FARK'];let csv=cols.join(';')+'\n';entries.forEach(e=>{const{sayima,fark}=calcEntry(e);csv+=[e.gun,e.tarih,e.acilis||0,e.gelen||0,e.gelenIade||0,e.transfer||0,e.kapanis||0,sayima,e.mallara||0,e.zayi||0,e.odenmez||0,fark].map(esc).join(';')+'\n';});const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'}));a.download=(p.name+'_'+ayLabel).replace(/[\s\/\\:*?"<>|]/g,'_')+'.csv';a.click();toast('Excel dosyası indirildi ✓');}
 let adminData={profiller:[],urunler:[],girdiler:[],skt:[]},adminSecilenSube=null,adminSecilenUrun=null;
 async function renderAdminPanel(){currentProduct=-1;document.getElementById('product-name-display').textContent='Admin Paneli';const tsubAdm=document.getElementById('topbar-sub');if(tsubAdm)tsubAdm.textContent='Tüm şubeler';document.getElementById('page-content').innerHTML='<div class="empty"><div class="ico">⏳</div><p>Şubeler yükleniyor...</p></div>';const{data:profiller,error}=await sb.from('sube_profiller').select('*');if(error){document.getElementById('page-content').innerHTML='<div class="empty"><p>Veri yüklenemedi: '+error.message+'</p></div>';return;}if(!profiller||!profiller.length){document.getElementById('page-content').innerHTML='<div class="empty"><div class="ico">🏪</div><p>Henüz kayıtlı şube yok.</p></div>';return;}const{data:tumGirdiler,error:ge}=await sb.from('gunluk_girdiler').select('*');const{data:tumUrunler,error:ue}=await sb.from('urunler').select('*').order('sira');if(ge){toast('Girdiler yüklenemedi: '+ge.message,5000);}if(ue){toast('Ürünler yüklenemedi: '+ue.message,5000);}adminData={profiller,urunler:tumUrunler||[],girdiler:tumGirdiler||[]};adminSecilenSube=null;adminSecilenUrun=null;const{data:tumSkt}=await sb.from('skt_takip').select('*').order('son_tarih');adminData.skt=tumSkt||[];renderAdminAnaSayfa();}
+function renderAdminSubeler(){renderAdminAnaSayfa();}
 function renderAdminAnaSayfa(){
   const{profiller,urunler,girdiler}=adminData;
   // Genel istatistikler

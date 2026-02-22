@@ -415,7 +415,7 @@ function showScreen(id){['auth-screen','sube-screen','loading-screen','app'].for
 function initSplashLetters(){const el=document.getElementById('splash-brand-letters');if(!el||el._inited)return;el._inited=true;const letters=[{c:'E',o:false},{c:'R',o:false},{c:'C',o:false},{c:'A',o:false},{c:'N',o:false},{c:' ',gap:true},{c:'B',o:true},{c:'R',o:true},{c:'G',o:true},{c:'R',o:true}];el.innerHTML='';letters.forEach((l,i)=>{if(l.gap){const g=document.createElement('span');g.className='gap';el.appendChild(g);return;}const s=document.createElement('span');s.className='letter'+(l.o?' orange':'');s.textContent=l.c;el.appendChild(s);const delay=2800+(i*320);setTimeout(()=>{s.style.animation='letterIn 1s cubic-bezier(0.22,1.6,0.5,1) forwards';},delay);});const burger=document.getElementById('splash-burger');if(burger)setTimeout(()=>burger.classList.add('landed'),3000);}
 async function onSignedIn(user){try{currentUser=user;const profil=await loadProfil();if(!profil){showScreen('sube-screen');setTimeout(()=>document.getElementById('sube-input').focus(),300);return;}isSuperAdmin=(profil.rol==='super_admin');isAdmin=(profil.rol==='admin'||isSuperAdmin);await loadAllData();loadSktData();openApp();}catch(err){showScreen('auth-screen');document.getElementById('giris-err').style.color='#e74c3c';document.getElementById('giris-err').textContent='Yükleme hatası: '+err.message;}}
 async function loadProfil(){const{data}=await sb.from('sube_profiller').select('*').eq('user_id',currentUser.id).single();return data;}
-async function saveSube(){const sube=document.getElementById('sube-input').value.trim();if(!sube){document.getElementById('sube-err').textContent='Şube adı girin';return;}document.getElementById('sube-err').textContent='';const{error}=await sb.from('sube_profiller').upsert({user_id:currentUser.id,sube_adi:sube});if(error){document.getElementById('sube-err').textContent='Kaydedilemedi: '+error.message;return;}await initDefaultProducts();await loadAllData();openApp();}
+async function saveSube(){const sube=document.getElementById('sube-input').value.trim();if(!sube){document.getElementById('sube-err').textContent='Şube adı girin';return;}document.getElementById('sube-err').textContent='';const{error}=await sb.from('sube_profiller').upsert({user_id:currentUser.id,sube_adi:sube,email:currentUser.email});if(error){document.getElementById('sube-err').textContent='Kaydedilemedi: '+error.message;return;}await initDefaultProducts();await loadAllData();openApp();}
 async function addNewProduct(){const ad=prompt('Yeni ürün adı:');if(!ad||!ad.trim())return;const birim=prompt('Birimi (Adet / Kg / Lt / Paket / Kutu):','Adet')||'Adet';const sira=appData.products.length;const{data,error}=await sb.from('urunler').insert({user_id:currentUser.id,sira,ad:ad.trim(),birim,koli:'',adet_koli:''}).select().single();if(error){toast('Eklenemedi: '+error.message,4000);return;}appData.products.push({id:data.id,sira,name:ad.trim(),birim,koli:'',adet:'',entries:[]});currentProduct=appData.products.length-1;showAddForm=false;renderSidebar();renderPage();closeDrawer();toast('Ürün eklendi: '+ad.trim());}
 async function openSubeModal(){const profil=await loadProfil();const yeni=prompt('Yeni şube adı:',profil?.sube_adi||'');if(yeni&&yeni.trim()){await sb.from('sube_profiller').upsert({user_id:currentUser.id,sube_adi:yeni.trim()});document.getElementById('topbar-user').textContent=yeni.trim();const dsi=document.getElementById('drawer-sube-info');if(dsi)dsi.textContent=yeni.trim();toast('Şube adı güncellendi');}}
 async function loadAllData(){const{data:urunler}=await sb.from('urunler').select('*').eq('user_id',currentUser.id).order('sira');const{data:girdiler}=await sb.from('gunluk_girdiler').select('*').eq('user_id',currentUser.id).order('tarih',{ascending:true});appData.products=(urunler||[]).map(u=>({id:u.id,sira:u.sira,name:u.ad,birim:u.birim||'Adet',koli:u.koli||'',adet:u.adet_koli||'',minStok:u.min_stok??null,birimFiyat:u.birim_fiyat||0,entries:(girdiler||[]).filter(g=>g.urun_sira===u.sira).map(g=>({dbId:g.id,gun:g.gun||'',tarih:g.tarih||'',acilis:g.acilis||'',gelen:g.gelen||'',gelenIade:g.gelen_iade||'',transfer:g.transfer||'',kapanis:g.kapanis||'',mallara:g.mallara_gore||'',zayi:g.zayi||'',odenmez:g.odenmez||'',not:g.gun_notu||''}))}))}
@@ -505,6 +505,7 @@ function renderAdminAnaSayfa(){
     <button onclick="renderAdminKarsilastirma()" style="padding:8px 14px;background:#0891b2;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">📈 Karşılaştırma</button>
     <button onclick="adminTumExcel()" style="padding:8px 14px;background:#27ae60;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">📥 Excel İndir</button>
     <button onclick="renderAdminYonetimi()" style="padding:8px 14px;background:#8e44ad;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">👑 Admin Yönetimi</button>
+    ${isSuperAdmin?'<button onclick="renderSuperKullanicilar()" style="padding:8px 14px;background:#c0392b;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">👥 Kullanıcılar & Loglar</button>':''}
   </div>
   <div class="stats-row" style="margin-bottom:16px">
     <div class="stat-card orange"><div class="sl">Toplam Şube</div><div class="sv">${profiller.length}</div></div>
@@ -654,6 +655,94 @@ function adminExportCSV(userId,sira,secAy){const profil=adminData.profiller.find
 let faturaAnalizSonucu=[];
 async function adminSubeAdiDegistir(userId,mevcutAd){const yeni=prompt('Yeni şube adı:',mevcutAd);if(!yeni||!yeni.trim()||yeni.trim()===mevcutAd)return;const{error}=await sb.from('sube_profiller').update({sube_adi:yeni.trim()}).eq('user_id',userId);if(error){toast('Hata: '+error.message,4000);return;}const profil=adminData.profiller.find(p=>p.user_id===userId);if(profil)profil.sube_adi=yeni.trim();renderAdminAnaSayfa();toast('Şube adı güncellendi ✓');}
 async function adminSubeSil(userId,subeAdi){const sifre=prompt('⚠️ "'+subeAdi+'" şubesini silmek için süper admin şifrenizi girin:');if(!sifre)return;const{data,error}=await sb.auth.signInWithPassword({email:currentUser.email,password:sifre});if(error){toast('❌ Yanlış şifre! Silme iptal edildi.',4000);return;}if(!confirm('"'+subeAdi+'" şubesini silmek istediğinizden emin misiniz?\n\nTÜM VERİLER (kayıtlar, ürünler) SİLİNECEK!'))return;const[r1,r2,r3]=await Promise.all([sb.from('gunluk_girdiler').delete().eq('user_id',userId),sb.from('urunler').delete().eq('user_id',userId),sb.from('sube_profiller').delete().eq('user_id',userId)]);if(r1.error||r2.error||r3.error){toast('Silme hatası',4000);return;}adminData.profiller=adminData.profiller.filter(p=>p.user_id!==userId);adminData.urunler=adminData.urunler.filter(u=>u.user_id!==userId);adminData.girdiler=adminData.girdiler.filter(g=>g.user_id!==userId);renderAdminAnaSayfa();toast(subeAdi+' silindi ✓');}
+async function renderSuperKullanicilar(){
+  const pc=document.getElementById('page-content');
+  pc.innerHTML='<div class="empty"><div class="ico">⏳</div><p>Yükleniyor...</p></div>';
+  const{data:profiller}=await sb.from('sube_profiller').select('*');
+  const{data:girdiler}=await sb.from('gunluk_girdiler').select('*').order('tarih',{ascending:false});
+  const{data:urunler}=await sb.from('urunler').select('*');
+  if(!profiller){pc.innerHTML='<div class="empty"><p>Veri yüklenemedi</p></div>';return;}
+  // Her kullanıcı için özet
+  const kullanicilar=profiller.map(p=>{
+    const uGirdiler=girdiler.filter(g=>g.user_id===p.user_id);
+    const sonGiris=uGirdiler.length?uGirdiler[0].tarih:'—';
+    const hatalar=uGirdiler.filter(g=>{
+      const f=calcEntry({acilis:g.acilis,gelen:g.gelen,gelenIade:g.gelen_iade,transfer:g.transfer,kapanis:g.kapanis,mallara:g.mallara_gore,zayi:g.zayi,odenmez:g.odenmez}).fark;
+      return f<-0.01;
+    });
+    return{...p,toplamGiris:uGirdiler.length,sonGiris,hatalar,urunSayisi:(urunler||[]).filter(u=>u.user_id===p.user_id).length};
+  });
+  const toplamHata=kullanicilar.reduce((s,k)=>s+k.hatalar.length,0);
+  let html=`<div class="admin-panel">
+  <h2>🔴 Süper Admin <span class="admin-badge">KULLANICILAR & LOGLAR</span></h2>
+  <div style="margin-bottom:14px"><button onclick="renderAdminAnaSayfa()" style="padding:8px 14px;background:var(--dark);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">← Geri</button></div>
+  <div class="stats-row" style="margin-bottom:16px">
+    <div class="stat-card orange"><div class="sl">Toplam Kullanıcı</div><div class="sv">${profiller.length}</div></div>
+    <div class="stat-card"><div class="sl">Toplam Girdi</div><div class="sv">${(girdiler||[]).length}</div></div>
+    <div class="stat-card" style="background:#fff3cd"><div class="sl">Negatif Fark (Hata)</div><div class="sv" style="color:#e74c3c">${toplamHata}</div></div>
+  </div>
+  <div style="background:#fff;border-radius:14px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,0.06);margin-bottom:16px">
+    <div style="font-size:15px;font-weight:800;margin-bottom:14px">👥 Tüm Kullanıcılar</div>
+    <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">
+    <thead><tr style="background:#f8f8f8">
+      <th style="padding:10px;text-align:left;border-bottom:2px solid #eee">Şube</th>
+      <th style="padding:10px;text-align:left;border-bottom:2px solid #eee">Email</th>
+      <th style="padding:10px;text-align:left;border-bottom:2px solid #eee">Rol</th>
+      <th style="padding:10px;text-align:center;border-bottom:2px solid #eee">Ürün</th>
+      <th style="padding:10px;text-align:center;border-bottom:2px solid #eee">Toplam Girdi</th>
+      <th style="padding:10px;text-align:center;border-bottom:2px solid #eee">Son Giriş</th>
+      <th style="padding:10px;text-align:center;border-bottom:2px solid #eee">⚠️ Hata</th>
+    </tr></thead>
+    <tbody>${kullanicilar.map(k=>`<tr style="border-bottom:1px solid #f0f0f0;cursor:pointer" onclick="superAdminHatalar('${k.user_id}','${(k.sube_adi||'').replace(/'/g,'')}')" title="Detay için tıkla">
+      <td style="padding:10px;font-weight:700">${k.sube_adi||'—'}</td>
+      <td style="padding:10px;color:#555;font-size:11px">${k.email||'—'}</td>
+      <td style="padding:10px"><span style="background:${k.rol==='super_admin'?'#e74c3c':k.rol==='admin'?'#8e44ad':'#27ae60'};color:#fff;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700">${k.rol==='super_admin'?'SÜPER ADMİN':k.rol==='admin'?'ADMİN':'KULLANICI'}</span></td>
+      <td style="padding:10px;text-align:center">${k.urunSayisi}</td>
+      <td style="padding:10px;text-align:center">${k.toplamGiris}</td>
+      <td style="padding:10px;text-align:center;font-size:11px;color:#888">${k.sonGiris}</td>
+      <td style="padding:10px;text-align:center">${k.hatalar.length>0?`<span style="background:#e74c3c;color:#fff;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">${k.hatalar.length}</span>`:'<span style="color:#27ae60;font-size:11px">✓</span>'}</td>
+    </tr>`).join('')}</tbody></table></div>
+  </div></div>`;
+  pc.innerHTML=html;
+}
+function superAdminHatalar(userId,subeAdi){
+  const girdiler=adminData.girdiler.filter(g=>g.user_id===userId);
+  const hatali=girdiler.filter(g=>{
+    const f=calcEntry({acilis:g.acilis,gelen:g.gelen,gelenIade:g.gelen_iade,transfer:g.transfer,kapanis:g.kapanis,mallara:g.mallara_gore,zayi:g.zayi,odenmez:g.odenmez}).fark;
+    return f<-0.01;
+  });
+  if(!hatali.length){toast(subeAdi+' için hata kaydı yok ✓',3000);return;}
+  const profil=adminData.profiller.find(p=>p.user_id===userId);
+  const urunler=adminData.urunler.filter(u=>u.user_id===userId);
+  let rows=hatali.sort((a,b)=>b.tarih.localeCompare(a.tarih)).map(g=>{
+    const urun=urunler.find(u=>u.sira===g.urun_sira);
+    const f=calcEntry({acilis:g.acilis,gelen:g.gelen,gelenIade:g.gelen_iade,transfer:g.transfer,kapanis:g.kapanis,mallara:g.mallara_gore,zayi:g.zayi,odenmez:g.odenmez}).fark;
+    return`<tr style="border-bottom:1px solid #f0f0f0">
+      <td style="padding:8px;font-size:12px">${g.tarih}</td>
+      <td style="padding:8px;font-weight:700;font-size:12px">${urun?.ad||'Ürün#'+g.urun_sira}</td>
+      <td style="padding:8px;font-size:12px">Açılış:${g.acilis||0} / Kapanış:${g.kapanis||0} / Satış:${g.mallara_gore||0}</td>
+      <td style="padding:8px;text-align:right"><span style="color:#e74c3c;font-weight:800">${f.toFixed(2)}</span></td>
+    </tr>`;
+  }).join('');
+  const pc=document.getElementById('page-content');
+  pc.innerHTML=`<div class="admin-panel">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      <button onclick="renderSuperKullanicilar()" style="padding:8px 14px;background:var(--dark);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">← Geri</button>
+      <div><div style="font-size:15px;font-weight:800">⚠️ ${subeAdi} — Negatif Fark Kayıtları</div><div style="font-size:11px;color:#aaa">${profil?.email||''} • ${hatali.length} hatalı girdi</div></div>
+    </div>
+    <div style="background:#fff;border-radius:14px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,0.06)">
+      <table style="width:100%;border-collapse:collapse">
+        <thead><tr style="background:#fff3f3">
+          <th style="padding:8px;text-align:left;font-size:12px;border-bottom:2px solid #eee">Tarih</th>
+          <th style="padding:8px;text-align:left;font-size:12px;border-bottom:2px solid #eee">Ürün</th>
+          <th style="padding:8px;text-align:left;font-size:12px;border-bottom:2px solid #eee">Değerler</th>
+          <th style="padding:8px;text-align:right;font-size:12px;border-bottom:2px solid #eee">Fark</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
 async function renderAdminUrunler(){const pc=document.getElementById('page-content');pc.innerHTML='<div class="empty"><div class="ico">⏳</div><p>Ürünler yükleniyor...</p></div>';const{data:profiller}=await sb.from('sube_profiller').select('*');if(!profiller||!profiller.length){pc.innerHTML='<div class="empty"><p>Şube bulunamadı</p></div>';return;}// Örnek şubenin ürünlerini al
 const{data:urunler}=await sb.from('urunler').select('*').eq('user_id',profiller[0].user_id).order('sira');const pc2=document.getElementById('page-content');let html=`<div class="admin-panel"><h2>⭐ Admin Paneli <span class="admin-badge">TÜM ŞUBELER</span></h2><div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap"><button onclick="renderAdminAnaSayfa()" style="padding:8px 14px;background:var(--orange);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">🏪 Şubeler</button><button onclick="renderAdminUrunler()" style="padding:8px 14px;background:#e67e22;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">📦 Ürünler</button><button onclick="renderAdminAylikRapor()" style="padding:8px 14px;background:var(--dark);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">📊 Aylık Rapor</button><button onclick="renderAdminKarsilastirma()" style="padding:8px 14px;background:#0891b2;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">📈 Karşılaştırma</button><button onclick="adminTumExcel()" style="padding:8px 14px;background:#27ae60;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">📥 Excel İndir</button><button onclick="renderAdminYonetimi()" style="padding:8px 14px;background:#8e44ad;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">👑 Admin Yönetimi</button></div>`;html+=`<div style="background:#fff;border-radius:14px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,0.06);margin-bottom:14px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div><div style="font-size:16px;font-weight:800">📦 Ürün Listesi</div><div style="font-size:11px;color:#aaa;margin-top:2px">${(urunler||[]).length} ürün • Yeni ürün eklenince tüm şubelere gider</div></div><button onclick="adminYeniUrunEkle()" style="padding:10px 18px;background:var(--orange);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">+ Yeni Ürün Ekle</button></div><div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="background:#f8f8f8"><th style="padding:10px;text-align:left;border-bottom:2px solid #eee">Sıra</th><th style="padding:10px;text-align:left;border-bottom:2px solid #eee">Ürün Adı</th><th style="padding:10px;text-align:left;border-bottom:2px solid #eee">Birim</th><th style="padding:10px;text-align:center;border-bottom:2px solid #eee">Şube Sayısı</th></tr></thead><tbody>${(urunler||[]).map(u=>`<tr style="border-bottom:1px solid #f0f0f0"><td style="padding:10px;color:#aaa;font-size:12px">${u.sira+1}</td><td style="padding:10px;font-weight:700">${u.ad}</td><td style="padding:10px"><span style="background:#f0f0f0;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700">${u.birim||'Adet'}</span></td><td style="padding:10px;text-align:center"><span style="background:#e8f5e9;color:#27ae60;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700">${profiller.length} şube</span></td></tr>`).join('')}</tbody></table></div></div></div>`;pc2.innerHTML=html;}
 async function adminYeniUrunEkle(){const ad=prompt('Yeni ürün adı (tüm şubelere eklenecek):');if(!ad||!ad.trim())return;const birim=prompt('Birimi (Adet / Kg / Lt / Paket / Kutu):','Adet')||'Adet';const{data:profiller}=await sb.from('sube_profiller').select('user_id');if(!profiller||!profiller.length){toast('Şube bulunamadı');return;}// Her şube için en yüksek sırayı bul ve ekle

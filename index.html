@@ -1,12 +1,12 @@
 ﻿<!DOCTYPE html>
 <html lang="tr">
 <head>
-<script>if(window.location.search.indexOf('v=202602240300')===-1){window.location.replace(window.location.pathname+'?v=202602240300');}</script>
+<script>if(window.location.search.indexOf('v=202602240400')===-1){window.location.replace(window.location.pathname+'?v=202602240400');}</script>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="202602240300">
+<meta name="app-version" content="202602240400">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Ercan BRGR | Envanter Sistemi</title>
 <link rel="manifest" href="manifest.json">
@@ -482,10 +482,39 @@ document.addEventListener('keydown',function(e){
   if(e.key==='ArrowUp'&&currentProduct>0){currentProduct--;showAddForm=false;renderSidebar(document.getElementById('search-input').value);renderPage();}
   if(e.key==='Escape'){const s=document.getElementById('search-input');if(s){s.value='';filterProducts();}}
 });
-function n(v){return parseFloat(String(v).replace(',','.'))||0;}
+function n(v){
+  if(v===''||v===null||v===undefined)return 0;
+  let s=String(v).trim();
+  if(s.indexOf('.')!==-1&&s.indexOf(',')!==-1){
+    // Both exist: dot=thousands, comma=decimal  e.g. 1.050,5 -> 1050.5
+    s=s.replace(/\./g,'').replace(',','.');
+  } else if(s.indexOf(',')!==-1){
+    const parts=s.split(',');
+    const intPart=parts[0];
+    const afterComma=parts[1];
+    // Thousands: integer part >= 1 AND exactly 3 digits after comma e.g. 1,050
+    if(parseInt(intPart)>=1&&afterComma&&afterComma.length===3&&!afterComma.match(/[^0-9]/)){
+      s=s.replace(',',''); // 1,050 -> 1050
+    } else {
+      s=s.replace(',','.'); // 0,088 -> 0.088, 1,5 -> 1.5
+    }
+  } else if(s.indexOf('.')!==-1){
+    const parts=s.split('.');
+    const intPart=parts[0];
+    const afterDot=parts[1];
+    // Thousands: integer part >= 1 AND exactly 3 digits after dot e.g. 1.050
+    if(parseInt(intPart)>=1&&afterDot&&afterDot.length===3&&!afterDot.match(/[^0-9]/)){
+      s=s.replace('.',''); // 1.050 -> 1050
+    }
+    // else decimal: 1.5, 0.088 -> keep
+  }
+  return parseFloat(s)||0;
+}
 function r(v){return Math.round(v*1000)/1000;}
-function fmt(v){if(v===''||v===null||v===undefined||v===0)return '';const num=parseFloat(String(v).replace(',','.'));if(isNaN(num)||num===0)return '';const s=(Math.round(num*1000)/1000).toString().replace('.',',');return s;}
-function fmtOr0(v){const num=parseFloat(String(v).replace(',','.'));if(isNaN(num))return '0';return (Math.round(num*1000)/1000).toString().replace('.',',');}
+function fmt(v){if(v===''||v===null||v===undefined)return '';const num=n(v);if(isNaN(num)||num===0)return '';let s=(Math.round(num*1000)/1000).toFixed(3);// Remove trailing zeros after decimal
+s=s.replace(/\.?0+$/,'');if(s.indexOf('.')!==-1)s=s.replace('.',',');// Add thousands dot for numbers >= 1000
+if(Math.abs(num)>=1000){const parts=s.split(',');parts[0]=parts[0].replace(/\B(?=(\d{3})+(?!\d))/g,'.');s=parts.join(',');}return s;}
+function fmtOr0(v){const num=n(v);if(isNaN(num))return '0';let s=(Math.round(num*1000)/1000).toFixed(3);s=s.replace(/\.?0+$/,'');if(s.indexOf('.')!==-1)s=s.replace('.',',');if(Math.abs(num)>=1000){const parts=s.split(',');parts[0]=parts[0].replace(/\B(?=(\d{3})+(?!\d))/g,'.');s=parts.join(',');}return s||'0';}
 function calcEntry(e){const a=n(e.acilis),g=n(e.gelen),gi=n(e.gelenIade),t=n(e.transfer),k=n(e.kapanis),m=n(e.mallara),z=n(e.zayi),o=n(e.odenmez);const sayima=r(a+g-gi-t-k);return{sayima,fark:r(m-sayima+z+o)};}
 function getStats(entries){if(!entries.length)return{last:'-',totalFark:0,posCount:0,negCount:0};let totalFark=0,posCount=0,negCount=0;entries.forEach(e=>{const{fark}=calcEntry(e);totalFark+=fark;if(fark>0)posCount++;else if(fark<0)negCount++;});const last=entries[entries.length-1];return{last:last.kapanis!==''?last.kapanis:'-',totalFark:r(totalFark),posCount,negCount};}
 let selectedMonth=new Date().toISOString().slice(0,7);

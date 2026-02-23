@@ -462,7 +462,7 @@ document.addEventListener('keydown',function(e){
   if(e.key==='Escape'){const s=document.getElementById('search-input');if(s){s.value='';filterProducts();}}
 });
 function n(v){return parseFloat(String(v).replace(',','.'))||0;}
-function r(v){return Math.round(v*100)/100;}
+function r(v){return Math.round(v*1000)/1000;}
 function calcEntry(e){const a=n(e.acilis),g=n(e.gelen),gi=n(e.gelenIade),t=n(e.transfer),k=n(e.kapanis),m=n(e.mallara),z=n(e.zayi),o=n(e.odenmez);const sayima=r(a+g-gi-t-k);return{sayima,fark:r(m-sayima+z+o)};}
 function getStats(entries){if(!entries.length)return{last:'-',totalFark:0,posCount:0,negCount:0};let totalFark=0,posCount=0,negCount=0;entries.forEach(e=>{const{fark}=calcEntry(e);totalFark+=fark;if(fark>0)posCount++;else if(fark<0)negCount++;});const last=entries[entries.length-1];return{last:last.kapanis!==''?last.kapanis:'-',totalFark:r(totalFark),posCount,negCount};}
 let selectedMonth=new Date().toISOString().slice(0,7);

@@ -539,6 +539,135 @@ function closeSktModal(){document.getElementById('skt-modal').classList.remove('
 function renderSktList(){const list=document.getElementById('skt-list');if(!sktData.length){list.innerHTML='<div style="text-align:center;padding:20px;color:#aaa;font-size:13px">Henüz kayıt yok.<br>Yukarıdan ürün ekleyin.</div>';return;}let html='<div style="border:1px solid #eee;border-radius:8px;overflow:hidden">';[...sktData].sort((a,b)=>a.son_tarih.localeCompare(b.son_tarih)).forEach(s=>{const g=sktGunFark(s.son_tarih);const bgc=g<0?'#fde8e8':g===0?'#ffe8e8':g<=2?'#fff3cd':g<=5?'#fffde7':'#f9f9f9';const badge=g<0?'<span style="background:#e74c3c;color:#fff;font-size:10px;padding:2px 6px;border-radius:4px;font-weight:700">GEÇTİ</span>':g===0?'<span style="background:#e74c3c;color:#fff;font-size:10px;padding:2px 6px;border-radius:4px;font-weight:700">BUGÜN!</span>':'<span style="background:'+(g<=2?'#e74c3c':g<=5?'#ffc107':'#27ae60')+';color:#fff;font-size:10px;padding:2px 6px;border-radius:4px;font-weight:700">'+g+' gün</span>';html+='<div style="display:flex;align-items:center;padding:10px 12px;background:'+bgc+';border-bottom:1px solid #eee;gap:8px"><div style="flex:1"><div style="font-size:13px;font-weight:700;color:#333">'+s.urun_adi+'</div><div style="font-size:11px;color:#888">'+(s.miktar?s.miktar+' &bull; ':'')+' SKT: '+s.son_tarih+'</div></div>'+badge+'<button onclick="deleteSktEntry(\''+s.id+'\')" style="padding:4px 8px;background:#e74c3c;color:#fff;border:none;border-radius:6px;font-size:11px;cursor:pointer;font-weight:700">Sil</button></div>';});html+='</div>';list.innerHTML=html;}
 async function addSktEntry(){const urunAdi=document.getElementById('skt-urun').value.trim();const tarih=document.getElementById('skt-tarih').value;const miktar=document.getElementById('skt-miktar').value.trim();if(!urunAdi||!tarih){toast('Ürün adı ve tarih zorunlu');return;}const{data,error}=await sb.from('skt_takip').insert({user_id:currentUser.id,urun_adi:urunAdi,son_tarih:tarih,miktar}).select().single();if(error){toast('Hata: '+error.message,4000);return;}sktData.push(data);document.getElementById('skt-urun').value='';document.getElementById('skt-miktar').value='';renderSktList();renderSktBanner();toast('SKT kaydı eklendi \u2713');}
 async function deleteSktEntry(id){const{error}=await sb.from('skt_takip').delete().eq('id',id);if(error){toast('Silme hatası',4000);return;}sktData=sktData.filter(s=>s.id!==id);renderSktList();renderSktBanner();toast('Silindi \u2713');}
+async function renderAdminAylikRapor(){
+  const pc=document.getElementById('page-content');
+  const now=new Date();
+  const defaultAy=now.toISOString().slice(0,7);
+  const profiller=adminData?.profiller||[];
+  const subeOptions=profiller.map((p,i)=>'<option value="'+i+'">'+(p.sube_adi||p.email)+'</option>').join('');
+  pc.innerHTML='<div style="padding:4px 0 16px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap"><button onclick="renderAdminAnaSayfa()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#e85d04">\u2190</button><h2 style="margin:0;font-size:18px">\uD83D\uDCCA Ayl\u0131k Rapor</h2></div><div style="background:#fff;border-radius:12px;padding:16px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,0.08)"><div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end"><div><label style="font-size:11px;font-weight:700;color:#999;display:block;margin-bottom:4px">\u015EUBE</label><select id="aylik-sube" style="width:100%;padding:10px;border:2px solid #eee;border-radius:8px;font-size:13px;outline:none">'+subeOptions+'</select></div><div><label style="font-size:11px;font-weight:700;color:#999;display:block;margin-bottom:4px">AY</label><input type="month" id="aylik-ay" value="'+defaultAy+'" style="width:100%;padding:10px;border:2px solid #eee;border-radius:8px;font-size:13px;outline:none"></div><button onclick="aylikRaporGoster()" style="padding:11px 18px;background:var(--orange);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap">G\xF6ster \u2192</button></div></div><div id="aylik-rapor-icerik"></div></div>';
+}
+async function aylikRaporGoster(){
+  const subeIdx=parseInt(document.getElementById('aylik-sube')?.value)||0;
+  const ay=document.getElementById('aylik-ay')?.value;
+  if(!ay){toast('Ay se\xE7in');return;}
+  const profil=adminData?.profiller?.[subeIdx];
+  if(!profil){toast('\u015Eube bulunamad\u0131');return;}
+  const el=document.getElementById('aylik-rapor-icerik');
+  el.innerHTML='<div style="text-align:center;padding:30px;color:#aaa">\u23F3 Y\xFCkleniyor...</div>';
+  const userId=profil.user_id;
+  const [{data:urunler},{data:girdiler}]=await Promise.all([sb.from('urunler').select('*').eq('user_id',userId).order('sira'),sb.from('gunluk_girdiler').select('*').eq('user_id',userId)]);
+  if(!urunler||!girdiler){el.innerHTML='<div style="color:#e74c3c;padding:20px">Veri al\u0131namad\u0131.</div>';return;}
+  const ayGirdiler=girdiler.filter(g=>g.tarih&&g.tarih.startsWith(ay));
+  if(!ayGirdiler.length){el.innerHTML='<div style="background:#fff;border-radius:12px;padding:30px;text-align:center;color:#aaa">Bu ay i\xE7in veri bulunamad\u0131.</div>';return;}
+  const monthName=new Date(ay+'-01').toLocaleDateString('tr-TR',{year:'numeric',month:'long'});
+  const subeBilgi=profil.sube_adi||profil.email;
+  let html='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px"><div style="font-size:15px;font-weight:700;color:#1a1a2e">\uD83D\uDCCA '+subeBilgi+' \u2014 '+monthName+'</div><button onclick="aylikPdfAl('+subeIdx+',\''+ay+'\')" style="padding:9px 16px;background:#27ae60;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">\uD83D\uDCCB PDF Al</button></div>';
+  urunler.forEach(function(u){
+    const uGirdiler=ayGirdiler.filter(function(g){return g.urun_sira===u.sira;}).sort(function(a,b){return (a.gun||0)-(b.gun||0);});
+    if(!uGirdiler.length)return;
+    let toplamFark=0,artiGun=0,eksiGun=0;
+    var satirlar=uGirdiler.map(function(g,idx){
+      const e={acilis:g.acilis,gelen:g.gelen,gelenIade:g.gelen_iade,transfer:g.transfer,kapanis:g.kapanis,mallara:g.mallara_gore,zayi:g.zayi,odenmez:g.odenmez};
+      const res=calcEntry(e);const sayima=res.sayima;const fark=res.fark;
+      toplamFark+=fark;if(fark>0)artiGun++;else if(fark<0)eksiGun++;
+      const fc=fark>0?'color:#27ae60;font-weight:700':fark<0?'color:#e74c3c;font-weight:700':'color:#999';
+      return '<tr style="'+(idx%2?'background:#f9f9f9':'')+'">'
+        +'<td style="text-align:center;color:#999;font-size:11px">'+(g.gun||idx+1)+'</td>'
+        +'<td style="text-align:center;font-size:11px">'+(g.tarih||'')+'</td>'
+        +'<td style="text-align:center">'+fmt(g.acilis)+'</td>'
+        +'<td style="text-align:center">'+fmt(g.gelen)+'</td>'
+        +'<td style="text-align:center">'+fmt(g.kapanis)+'</td>'
+        +'<td style="text-align:center">'+fmt(sayima)+'</td>'
+        +'<td style="text-align:center">'+fmt(g.mallara_gore)+'</td>'
+        +'<td style="text-align:center">'+fmt(g.zayi)+'</td>'
+        +'<td style="text-align:center;'+fc+'">'+(fark!==0?(fark>0?'+':'')+fmt(fark):'')+'</td>'
+        +'</tr>';
+    }).join('');
+    const toplamRenk=toplamFark>0?'#27ae60':toplamFark<0?'#e74c3c':'#999';
+    html+='<div style="background:#fff;border-radius:12px;margin-bottom:16px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.07)">'
+      +'<div style="background:linear-gradient(135deg,#1a1a2e,#16213e);color:#fff;padding:10px 14px;display:flex;justify-content:space-between;align-items:center">'
+      +'<span style="font-size:14px;font-weight:800">\uD83D\uDCE6 '+u.ad+'</span>'
+      +'<span style="font-size:11px;color:rgba(255,255,255,0.6)">'+(u.birim||'')+' \xB7 '+uGirdiler.length+' g\xFCn</span></div>'
+      +'<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">'
+      +'<thead><tr style="background:#f5f5f5">'
+      +'<th style="padding:6px 8px;font-size:10px;color:#999">G\xDCN#</th>'
+      +'<th style="padding:6px 8px;font-size:10px;color:#999">TAR\u0130H</th>'
+      +'<th style="padding:6px 8px;font-size:10px;color:#999">A\xC7ILI\u015E</th>'
+      +'<th style="padding:6px 8px;font-size:10px;color:#999">GELEN</th>'
+      +'<th style="padding:6px 8px;font-size:10px;color:#999">KAPANI\u015E</th>'
+      +'<th style="padding:6px 8px;font-size:10px;color:#999">SAYIMA</th>'
+      +'<th style="padding:6px 8px;font-size:10px;color:#999">MALLARA</th>'
+      +'<th style="padding:6px 8px;font-size:10px;color:#999">ZAY\u0130</th>'
+      +'<th style="padding:6px 8px;font-size:10px;color:#999">FARK</th>'
+      +'</tr></thead><tbody>'+satirlar+'</tbody>'
+      +'<tfoot><tr style="background:#f0f4ff;font-weight:800;border-top:2px solid #e0e0e0">'
+      +'<td colspan="8" style="padding:8px 12px;text-align:right;font-size:12px;color:#666">'
+      +'TOPLAM FARK &nbsp;| <span style="color:#27ae60">+'+artiGun+' g\xFCn</span> <span style="color:#e74c3c"> -'+eksiGun+' g\xFCn</span></td>'
+      +'<td style="padding:8px 10px;text-align:center;font-size:14px;color:'+toplamRenk+'">'+(toplamFark>0?'+':'')+fmt(toplamFark)+'</td>'
+      +'</tr></tfoot></table></div></div>';
+  });
+  el.innerHTML=html;
+}
+async function aylikPdfAl(subeIdx,ay){
+  const profil=adminData?.profiller?.[subeIdx];
+  if(!profil){toast('\u015Eube bulunamad\u0131');return;}
+  const userId=profil.user_id;
+  const [{data:urunler},{data:girdiler}]=await Promise.all([sb.from('urunler').select('*').eq('user_id',userId).order('sira'),sb.from('gunluk_girdiler').select('*').eq('user_id',userId)]);
+  if(!urunler||!girdiler){toast('Veri al\u0131namad\u0131');return;}
+  const ayGirdiler=girdiler.filter(function(g){return g.tarih&&g.tarih.startsWith(ay);});
+  const monthName=new Date(ay+'-01').toLocaleDateString('tr-TR',{year:'numeric',month:'long'});
+  const subeBilgi=profil.sube_adi||profil.email;
+  let icerik='';
+  urunler.forEach(function(u){
+    const uGirdiler=ayGirdiler.filter(function(g){return g.urun_sira===u.sira;}).sort(function(a,b){return (a.gun||0)-(b.gun||0);});
+    if(!uGirdiler.length)return;
+    let toplamFark=0,artiGun=0,eksiGun=0;
+    var satirlar=uGirdiler.map(function(g,idx){
+      const e={acilis:g.acilis,gelen:g.gelen,gelenIade:g.gelen_iade,transfer:g.transfer,kapanis:g.kapanis,mallara:g.mallara_gore,zayi:g.zayi,odenmez:g.odenmez};
+      const res=calcEntry(e);const sayima=res.sayima;const fark=res.fark;
+      toplamFark+=fark;if(fark>0)artiGun++;else if(fark<0)eksiGun++;
+      const fc=fark>0?'color:#27ae60':fark<0?'color:#e74c3c':'';
+      return '<tr style="'+(idx%2?'background:#f9f9f9':'')+'">'
+        +'<td>'+(g.gun||idx+1)+'</td><td>'+(g.tarih||'')+'</td>'
+        +'<td>'+fmt(g.acilis)+'</td><td>'+fmt(g.gelen)+'</td>'
+        +'<td>'+fmt(g.kapanis)+'</td><td>'+fmt(sayima)+'</td>'
+        +'<td>'+fmt(g.mallara_gore)+'</td><td>'+fmt(g.zayi)+'</td>'
+        +'<td style="font-weight:700;'+fc+'">'+(fark!==0?(fark>0?'+':'')+fmt(fark):'')+'</td></tr>';
+    }).join('');
+    const toplamRenk=toplamFark>0?'#27ae60':toplamFark<0?'#e74c3c':'#999';
+    icerik+='<div class="urun-blok">'
+      +'<div class="urun-baslik">\uD83D\uDCE6 '+u.ad+' <span class="birim">'+(u.birim||'')+' &middot; '+uGirdiler.length+' g\xFCn</span></div>'
+      +'<table><thead><tr><th>G\xDCN#</th><th>TAR\u0130H</th><th>A\xC7ILI\u015E</th><th>GELEN</th><th>KAPANI\u015E</th><th>SAYIMA</th><th>MALLARA</th><th>ZAY\u0130</th><th>FARK</th></tr></thead>'
+      +'<tbody>'+satirlar+'</tbody>'
+      +'<tfoot><tr class="toplam-row"><td colspan="8" style="text-align:right">TOPLAM FARK &middot; <span style="color:#27ae60">+'+artiGun+' g\xFCn</span> <span style="color:#e74c3c"> -'+eksiGun+' g\xFCn</span></td>'
+      +'<td style="color:'+toplamRenk+';font-weight:800;font-size:13px">'+(toplamFark>0?'+':'')+fmt(toplamFark)+'</td></tr></tfoot>'
+      +'</table></div>';
+  });
+  var html='<!DOCTYPE html><html lang="tr"><head><meta charset="UTF-8"><title>Ayl\u0131k Rapor - '+subeBilgi+' - '+monthName+'</title><style>'
+    +'*{box-sizing:border-box;margin:0;padding:0}'
+    +'body{font-family:Arial,sans-serif;font-size:9px;color:#222;background:#fff}'
+    +'.header{background:#1a1a2e;color:#fff;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}'
+    +'.header h1{font-size:16px;color:#e85d04}'
+    +'.header .meta{font-size:10px;color:rgba(255,255,255,0.6)}'
+    +'.urun-blok{margin:0 8px 16px;border:1px solid #e0e0e0;border-radius:6px;overflow:hidden;page-break-inside:avoid}'
+    +'.urun-baslik{background:#1a1a2e;color:#fff;padding:7px 12px;font-size:12px;font-weight:800}'
+    +'.birim{font-size:9px;color:rgba(255,255,255,0.5);font-weight:400}'
+    +'table{width:100%;border-collapse:collapse}'
+    +'th{background:#f0f0f0;padding:4px 6px;text-align:center;font-size:8px;color:#666;font-weight:700;border-bottom:2px solid #ddd}'
+    +'td{padding:3px 6px;text-align:center;border-bottom:1px solid #eee;font-size:9px}'
+    +'.toplam-row{background:#f5f8ff;border-top:2px solid #ddd;font-weight:700}'
+    +'.footer{margin:16px 8px 8px;font-size:8px;color:#aaa;border-top:1px solid #eee;padding-top:6px;display:flex;justify-content:space-between}'
+    +'@media print{@page{size:A4 portrait;margin:0.5cm}body{font-size:8px}.urun-blok{page-break-inside:avoid}}'
+    +'</style></head><body>'
+    +'<div class="header"><div><h1>Ayl\u0131k Envanter Raporu</h1><div class="meta">'+subeBilgi+' &middot; '+monthName+'</div></div>'
+    +'<div style="font-size:9px;color:rgba(255,255,255,0.4)">Ercan BRGR | YPC.TECNO</div></div>'
+    +icerik
+    +'<div class="footer"><span>Ercan BRGR Envanter Sistemi \u2014 YPC.TECNO | Ufuk Yap\u0131c\u0131</span><span>Olu\u015Fturuldu: '+new Date().toLocaleString('tr-TR')+'</span></div>'
+    +'</body></html>';
+  pdfAc(html);
+}
+
 function pdfAc(html){const w=window.open('','_blank');if(w){w.document.open();w.document.write(html);w.document.close();w.onload=()=>setTimeout(()=>w.print(),300);}else{const blob=new Blob([html],{type:'text/html;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.target='_blank';document.body.appendChild(a);a.click();setTimeout(()=>document.body.removeChild(a),500);}}
 function gunlukPdfIndir(){const bugun=new Date().toISOString().slice(0,10);const tarih=prompt('Rapor tarihi (YYYY-AA-GG):',bugun);if(!tarih)return;const products=appData.products||[];const subeBilgi=document.getElementById('drawer-sube-info')?.textContent||'';let rows='';let ozet={arti:0,eksi:0,notr:0,girilmemis:0};products.forEach(p=>{const e=p.entries&&p.entries.find(e=>e.tarih===tarih);if(!e){ozet.girilmemis++;rows+=`<tr style="background:#fff9f0"><td style="text-align:left;color:#999">${p.name}</td><td style="color:#999">${p.birim||'—'}</td><td colspan="7" style="color:#ccc;font-style:italic">Giriş yapılmadı</td></tr>`;return;}const{sayima,fark}=calcEntry(e);const fc=fark>0?'color:#27ae60;font-weight:800':fark<0?'color:#e74c3c;font-weight:800':'color:#999';if(fark>0)ozet.arti++;else if(fark<0)ozet.eksi++;else ozet.notr++;rows+=`<tr><td style="text-align:left;font-weight:600">${p.name}</td><td>${p.birim||'—'}</td><td>${fmt(e.acilis)}</td><td>${fmt(e.gelen)}</td><td>${fmt(e.kapanis)}</td><td>${fmt(sayima)}</td><td>${e.mallara??''}</td><td>${e.zayi??''}</td><td style="${fc}">${e.acilis!==undefined||e.kapanis!==undefined?(fark>0?'+':'')+fark:''}</td></tr>`;});const html=`<!DOCTYPE html><html lang="tr"><head><meta charset="UTF-8"><title>Günlük Rapor - ${tarih}</title><style>*{box-sizing:border-box}body{font-family:Arial,sans-serif;font-size:9px;color:#222;margin:0.7cm}h1{font-size:14px;color:#e85d04;margin:0 0 2px}h2{font-size:10px;color:#555;font-weight:400;margin:0 0 10px}.ozet{display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap}.oz{padding:5px 12px;border-radius:6px;font-size:9px;text-align:center;border:1px solid #eee}.oz b{display:block;font-size:15px;font-weight:800}table{width:100%;border-collapse:collapse}th{background:#1a1a2e;color:#fff;padding:4px 6px;text-align:center;font-size:8px}th:first-child{text-align:left}td{padding:3px 6px;text-align:center;border-bottom:1px solid #eee}td:first-child{text-align:left}tr:nth-child(even):not([style]){background:#f9f9f9}.footer{margin-top:8px;font-size:8px;color:#bbb;border-top:1px solid #eee;padding-top:5px;display:flex;justify-content:space-between}@media print{@page{size:A4 portrait;margin:0.7cm}}</style></head><body><h1>📋 Günlük Envanter Raporu</h1><h2>⚙️ ${tarih} | ${subeBilgi}</h2><div class="ozet"><div class="oz" style="border-color:#27ae60"><b style="color:#27ae60">${ozet.arti}</b>Fazla</div><div class="oz" style="border-color:#e74c3c"><b style="color:#e74c3c">${ozet.eksi}</b>Eksik</div><div class="oz"><b style="color:#999">${ozet.notr}</b>Sıfır</div><div class="oz" style="border-color:#f0a500"><b style="color:#f0a500">${ozet.girilmemis}</b>Girilmemiş</div></div><table><thead><tr><th>Ürün</th><th>Birim</th><th>Açılış</th><th>Gelen</th><th>Kapanış</th><th>Sayıma</th><th>Mallara</th><th>Zayi</th><th>FARK</th></tr></thead><tbody>${rows}</tbody></table><div class="footer"><span>Ercan BRGR Envanter — YPC.TECNO</span><span>Oluşturuldu: ${new Date().toLocaleString('tr-TR')}</span></div></body></html>`;pdfAc(html);}
 function printUrunRaporu(){const p=appData.products[currentProduct];if(!p){toast('Önce bir ürün seçin');return;}const doFilter=selectedMonth&&selectedMonth!=='tumu';const entries=doFilter?p.entries.filter(e=>e.tarih&&e.tarih.startsWith(selectedMonth)):p.entries;const birim=p.birim||'Adet';const stats=getStats(entries);const ayLabel=doFilter?monthLabel(selectedMonth):'Tüm Aylar';const profil=document.getElementById('drawer-sube-info').textContent||'';const fireTL=p.birimFiyat>0&&stats.totalFark<0?'? '+(Math.round(Math.abs(stats.totalFark)*p.birimFiyat*100)/100)+'? kayıp':'';let rows='';entries.forEach(e=>{const{sayima,fark}=calcEntry(e);const fc=fark>0?'color:#27ae60':fark<0?'color:#e74c3c':'color:#999';rows+=`<tr><td>${e.gun||''}</td><td>${e.tarih||''}</td><td>${e.acilis||''}</td><td>${e.gelen||''}</td><td>${e.kapanis||''}</td><td>${sayima}</td><td>${e.mallara||''}</td><td>${e.zayi||''}</td><td style="font-weight:800;${fc}">${e.acilis!==''||e.kapanis!==''?(fark>0?'+':'')+fark:''}</td><td style="font-size:10px;color:#888">${e.not||''}</td></tr>`;});const html=`<!DOCTYPE html><html lang="tr"><head><meta charset="UTF-8"><title>${p.name} - ${ayLabel}</title><style>body{font-family:Arial,sans-serif;font-size:11px;color:#333;margin:1cm}h1{font-size:16px;color:#e85d04;margin-bottom:4px}h2{font-size:12px;color:#666;margin-bottom:12px;font-weight:400}table{width:100%;border-collapse:collapse;margin-bottom:16px}th{background:#1a1a2e;color:#fff;padding:6px 8px;text-align:center;font-size:10px}td{padding:5px 8px;text-align:center;border-bottom:1px solid #eee}tr:nth-child(even){background:#f9f9f9}.stat-box{display:inline-block;background:#f5f5f5;padding:8px 14px;border-radius:6px;margin-right:8px;margin-bottom:10px;border-left:3px solid #e85d04}.stat-label{font-size:9px;color:#999;text-transform:uppercase}.stat-val{font-size:18px;font-weight:800;color:#1a1a2e}.footer{margin-top:16px;font-size:9px;color:#bbb;border-top:1px solid #eee;padding-top:8px}@media print{@page{size:A4 landscape;margin:1cm}}</style></head><body><h1>📦 ${p.name}</h1><h2>${profil} &nbsp;|&nbsp; ${ayLabel} &nbsp;|&nbsp; ${birim}</h2><div><div class="stat-box"><div class="stat-label">Toplam Gün</div><div class="stat-val">${entries.length}</div></div><div class="stat-box"><div class="stat-label">${ayLabel} Fark</div><div class="stat-val" style="color:${stats.totalFark>0?'#27ae60':stats.totalFark<0?'#e74c3c':'#999'}">${stats.totalFark>0?'+':''}${fmt(stats.totalFark)||'0'} ${birim}</div></div><div class="stat-box"><div class="stat-label">+ / - Gün</div><div class="stat-val"><span style="color:#27ae60">+${stats.posCount}</span> / <span style="color:#e74c3c">${stats.negCount}</span></div></div>${fireTL?'<div class="stat-box"><div class="stat-label">Fire Maliyet</div><div class="stat-val" style="color:#e74c3c">'+fireTL+'</div></div>':''}</div><table><thead><tr><th>Gün #</th><th>Tarih</th><th>Açılış (${birim})</th><th>Gelen</th><th>Kapanış (${birim})</th><th>Sayıma Göre</th><th>Mallara Göre</th><th>Zayi</th><th>FARK</th><th>Not</th></tr></thead><tbody>${rows}</tbody></table><div class="footer">Ercan BRGR Envanter — ${new Date().toLocaleString('tr-TR')}</div></body></html>`;pdfAc(html);}

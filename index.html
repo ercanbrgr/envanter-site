@@ -893,7 +893,8 @@ else if(/JUNIOR.*TAVUK|TAVUK.*JUNIOR/.test(ad)){bSira=5;bGr=65;isTavuk=true;isMi
 else if(/JUNIOR|MINI ET/.test(ad)){bSira=0;bGr=50;isMiniEkmek=true;mb.pat=mb.pat||1;mb.kutu=mb.kutu||1;}
 else if(/LEZZET/.test(ad)){if(item.birimFiyat>220){bSira=1;bGr=85;}else{bSira=6;bGr=120;isTavuk=true;}mb.pat=mb.pat||1;mb.kutu=mb.kutu||1;}
 else if(/JOKE|ALGIDA JOKER|KAMPANYA.*JOKE/.test(ad)){bSira=1;bGr=85;}
-else if(/SUPPER|SUPER|MISS CRISPY|GURME/.test(ad)){bSira=2;bGr=120;}
+else if(/GURME/.test(ad)){bSira=1;bGr=85;}
+else if(/SUPPER|SUPER|MISS CRISPY/.test(ad)){bSira=2;bGr=120;}
 else if(/TASTY|RAMAZAN(?!.*CORBALI)/.test(ad)){bSira=3;bGr=150;}
 else if(/SPECIAL|BIG SPECIAL/.test(ad)){bSira=4;bGr=150;}
 else if(/TENDERS/.test(ad)){bSira=7;bGr=110;isTavuk=true;}

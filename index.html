@@ -520,10 +520,10 @@ function renderAdminSubeler(){const{profiller,urunler,girdiler}=adminData;const 
 async function renderAdminAnaSayfa(){
   const{profiller,urunler,girdiler}=adminData;
   // Bekleyen onayları canlı çek
-  const{data:bekData}=await sb.from('sube_profiller').select('*').eq('onay',false);
-  const bekleyenler=(bekData||[]).filter(p=>p.rol!=='admin'&&p.rol!=='super_admin');
+  const{data:bekData}=await sb.from('sube_profiller').select('*');
+  const bekleyenler=(bekData||[]).filter(p=>p.onay===false&&p.rol!=='admin'&&p.rol!=='super_admin');
   // adminData.profiller'i güncelle (yeni gelenler dahil)
-  bekleyenler.forEach(b=>{if(!adminData.profiller.find(p=>p.user_id===b.user_id))adminData.profiller.push(b);else{const idx=adminData.profiller.findIndex(p=>p.user_id===b.user_id);adminData.profiller[idx]=b;}});
+  (bekData||[]).forEach(b=>{if(!adminData.profiller.find(p=>p.user_id===b.user_id))adminData.profiller.push(b);else{const idx=adminData.profiller.findIndex(p=>p.user_id===b.user_id);adminData.profiller[idx]=b;}});
   // Genel istatistikler
   const bugun=new Date().toISOString().slice(0,10);
   const bugunGiris=girdiler.filter(g=>g.tarih===bugun).length;

@@ -1,0 +1,69 @@
+====================================
+REÇETE KONTROLÜ - HATALILARI DÜZELT
+====================================
+
+Format: ÜRÜN ADI | Malzeme | Miktar | Birim
+
+Örnek düzeltme:
+❌ JOKER CLASSIC | Nugget | 4 | gr
+✅ JOKER CLASSIC | Nugget | 4 | adet
+
+
+====================================
+MEVCUT REÇETELER (TAHMİNİ)
+====================================
+
+BIG SPECIAL PEYNIR
+- Ekmek | 1 | adet
+- Super Et (120gr) | 120 | gr
+- Cheddar Peynir | 30 | gr
+- Burger Sos | 30 | gr
+
+RED ZONE MENÜ
+- Ekmek | 1 | adet
+- Tavuk Burger (120gr) | 120 | gr
+- Patates | 130 | gr
+- Kutu İçecek | 1 | adet
+- Ranch Sos | 30 | gr
+
+PAKET RAMAZAN JOKE
+- Ekmek | 1 | adet
+- Joker Et (85gr) | 85 | gr
+- Patates | 130 | gr
+- Su | 1 | adet
+- Kutu İçecek | 1 | adet
+- Burger Sos | 30 | gr
+
+ÇITIR TAVUK TABAĞI
+- Tavuk Parçası | 6 | adet
+- Patates | 130 | gr
+
+4'LÜ NUGGETT
+- Nugget | 4 | adet
+
+12'Lİ SOĞAN HALKA
+- Soğan Halkası | 12 | adet
+
+6'LI STICK PEYNIR
+- Stick Peynir | 6 | adet
+
+
+====================================
+SEN EKLE / DÜZELT
+====================================
+
+ÜRÜN ADI: 
+- Malzeme | Miktar | Birim
+- Malzeme | Miktar | Birim
+
+ÜRÜN ADI: 
+- Malzeme | Miktar | Birim
+
+
+====================================
+NOTLAR
+====================================
+- Birim: adet, gr, porsiyon, ml
+- Et/Tavuk: gr olarak yaz (örn: 85 gr)
+- Ekmek/Su/Nugget: adet olarak yaz
+- Patates/Sos: gr olarak yaz

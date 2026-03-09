@@ -1,0 +1,257 @@
+==========================================
+REÇETE KONTROL LİSTESİ
+==========================================
+Bu listeyi kontrol et, yanlış olan varsa işaretle!
+
+✅ = Doğru
+❌ = Yanlış (altına doğrusunu yaz)
+
+==========================================
+
+JOKER BURGERLER (85 GR)
+---
+JOKER CLASSIC
+✅ Ekmek 1 adet
+✅ Joker Et 85 gr
+✅ Burger Sos 30 gr
+
+JOKER CHEESE
+✅ Ekmek 1 adet
+✅ Joker Et 85 gr
+✅ Cheddar 30 gr
+✅ Burger Sos 30 gr
+
+JOKER SMOKY
+✅ Ekmek 1 adet
+✅ Joker Et 85 gr
+✅ Burger Sos 30 gr
+
+JOKER MUSHROOM
+✅ Ekmek 1 adet
+✅ Joker Et 85 gr
+✅ Trüflü Mayonez 20 gr
+✅ Mantar 20 gr
+
+JOKER ALEV ALEV
+✅ Ekmek 1 adet
+✅ Joker Et 85 gr
+✅ Acı Sos 40 gr
+
+JOKER DOUBLE
+✅ Ekmek 1 adet
+✅ Joker Et 170 gr (2x85)
+✅ Burger Sos 30 gr
+
+==========================================
+
+SUPER BURGERLER (120 GR)
+---
+SUPER CLASSIC
+✅ Ekmek 1 adet
+✅ Super Et 120 gr
+✅ Burger Sos 30 gr
+
+SUPER CHEESE
+✅ Ekmek 1 adet
+✅ Super Et 120 gr
+✅ Cheddar 30 gr
+✅ Burger Sos 30 gr
+
+SUPER SMOKY
+✅ Ekmek 1 adet
+✅ Super Et 120 gr
+✅ Burger Sos 30 gr
+
+SUPER MUSHROOM
+✅ Ekmek 1 adet
+✅ Super Et 120 gr
+✅ Trüflü Mayonez 20 gr
+✅ Mantar 20 gr
+
+SUPER ALEV ALEV
+✅ Ekmek 1 adet
+✅ Super Et 120 gr
+✅ Acı Sos 40 gr
+
+SUPER DOUBLE
+✅ Ekmek 1 adet
+✅ Super Et 240 gr (2x120)
+✅ Burger Sos 30 gr
+
+==========================================
+
+TASTY BURGERLER (150 GR)
+---
+TASTY CLASSIC
+✅ Ekmek 1 adet
+✅ Tasty Et 150 gr
+✅ Burger Sos 30 gr
+
+TASTY CHEESE
+✅ Ekmek 1 adet
+✅ Tasty Et 150 gr
+✅ Cheddar 30 gr
+✅ Burger Sos 30 gr
+
+TASTY SMOKY
+✅ Ekmek 1 adet
+✅ Tasty Et 150 gr
+✅ Burger Sos 30 gr
+
+TASTY MUSHROOM
+✅ Ekmek 1 adet
+✅ Tasty Et 150 gr
+✅ Trüflü Mayonez 20 gr
+✅ Mantar 20 gr
+
+TASTY ALEV ALEV
+✅ Ekmek 1 adet
+✅ Tasty Et 150 gr
+✅ Acı Sos 40 gr
+
+==========================================
+
+TAVUK BURGERLER
+---
+CHICKEN BURGER
+✅ Ekmek 1 adet
+✅ Tavuk 120 gr
+✅ Ranch Sos 30 gr
+
+CHICKEN TENDERS
+✅ Ekmek 1 adet
+✅ Tenders 120 gr
+✅ Ranch Sos 30 gr
+
+CHEDDAR CHICKEN
+✅ Ekmek 1 adet
+✅ Tavuk 120 gr
+✅ Cheddar 30 gr
+✅ Ranch Sos 30 gr
+
+==========================================
+
+RAMAZAN MENÜLER
+---
+PAKET RAMAZAN JOKE (41 adet satıldı)
+✅ Ekmek 1 adet
+✅ Joker Et 85 gr
+✅ Patates 130 gr
+✅ Su 1 adet
+✅ Kutu İçecek 1 adet
+✅ Burger Sos 30 gr
+
+RAMAZAN ETLI MENÜ
+✅ Ekmek 1 adet
+✅ Joker Et 85 gr
+✅ Patates 130 gr
+✅ Su 1 adet
+✅ Kutu İçecek 1 adet
+✅ Burger Sos 30 gr
+
+RAMAZAN ÇORBALI TAVUK
+✅ Ekmek 1 adet
+✅ Tenders 120 gr
+✅ Patates 130 gr
+✅ Su 1 adet
+✅ Kutu İçecek 1 adet
+✅ Ranch Sos 30 gr
+
+RAMAZAN TAVUKLU MENÜ
+✅ Ekmek 1 adet
+✅ Tenders 120 gr
+✅ Patates 130 gr
+✅ Su 1 adet
+✅ Kutu İçecek 1 adet
+✅ Ranch Sos 30 gr
+
+==========================================
+
+DİĞER
+---
+BIG SPECIAL PEYNIR
+✅ Ekmek 1 adet
+✅ Special Et 150 gr
+✅ Cheddar 30 gr
+✅ Burger Sos 30 gr
+
+RED ZONE MENÜ
+✅ Ekmek 1 adet
+✅ Tavuk 120 gr
+✅ Patates 130 gr
+✅ Kutu İçecek 1 adet
+✅ Ranch Sos 30 gr
+
+JUNIOR ET BURGER
+✅ Ekmek 1 adet
+✅ Mini Et 50 gr
+✅ Patates 130 gr
+✅ Kutu İçecek 1 adet
+✅ Burger Sos 30 gr
+
+GURME İKİLİ
+✅ Ekmek 2 adet
+✅ Joker Smoky Et 170 gr (2x85)
+✅ Patates 260 gr (2 porsiyon)
+✅ Kutu İçecek 2 adet
+✅ Burger Sos 30 gr
+
+TOK EDEN MENU
+✅ Makarna 1 porsiyon
+✅ Kutu İçecek 1 adet
+
+GOLDEN BURGER
+✅ Ekmek 1 adet
+
+EFSANE UCLU TAVUK
+✅ Ekmek 3 adet
+✅ Tavuk 360 gr (3x120)
+✅ Patates 390 gr (3 porsiyon)
+✅ 1 Litre İçecek 1 adet
+
+==========================================
+
+APERATİFLER
+---
+ÇITIR TAVUK TABAĞI
+✅ Tavuk Parçası 6 adet
+✅ Patates 130 gr
+
+12'Lİ SOĞAN HALKA
+✅ Soğan Halkası 12 adet
+
+6'Lİ SOĞAN HALKA
+✅ Soğan Halkası 6 adet
+
+6'LI STICK PEYNIR
+✅ Stick Peynir 6 adet
+
+4'LÜ NUGGETT
+✅ Nugget 4 adet
+
+MIX ATISTIRMALIK
+✅ Soğan Halkası 4 adet
+✅ Stick Peynir 3 adet
+✅ Nugget 3 adet
+✅ Patates 130 gr
+
+==========================================
+
+İÇECEKLER
+---
+SODA
+✅ Soda 1 adet
+
+MENÜ COLA P.
+✅ 1 Litre İçecek 1 adet
+
+==========================================
+
+HATALILARI İŞARETLE:
+Örnek:
+❌ JOKER CLASSIC - Burger Sos 30 değil 40 olacak
+❌ SUPER CHEESE - Cheddar eksik
+
+HATALAR:
+
+

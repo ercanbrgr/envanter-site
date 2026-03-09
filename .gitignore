@@ -2,3 +2,6 @@ envanterpro/
 node_modules/
 .DS_Store
 *.log
+fix-superadmin.ps1
+*secret*
+*key*.ps1

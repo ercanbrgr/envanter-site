@@ -1,0 +1,1 @@
+﻿const fs=require("fs");const c=fs.readFileSync("C:/Users/yapic/OneDrive/Belgeler/GitHub/index.html","utf8");const F="\uFFFD";let idx=0;while((idx=c.indexOf(F,idx))>=0){const ctx=c.substring(Math.max(0,idx-15),Math.min(c.length,idx+15));console.log(`pos ${idx}: "${ctx.replace(/\uFFFD/g,"???")}"`);idx++;}

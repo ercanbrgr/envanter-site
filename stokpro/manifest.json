@@ -1,0 +1,14 @@
+﻿{
+  "name": "EnvanterPro — Akıllı Envanter",
+  "short_name": "EnvanterPro",
+  "description": "Çok şubeli işletmeler için bulut envanter yönetim sistemi",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "orientation": "portrait-primary",
+  "icons": [],
+  "categories": ["business", "productivity"],
+  "lang": "tr"
+}
+

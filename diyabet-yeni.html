@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>DiyabetTakip</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1976D2">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="DiyabetTakip">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root{--blue:#1976D2;--blue2:#1565C0;--green:#43A047;--orange:#FB8C00;--red:#E53935;--bg:#F4F6F9;--card:#fff;--text:#1a1a2e;--gray:#888;--purple:#7B1FA2;--teal:#00897B;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);min-height:100vh;color:var(--text)}
+#setup-screen,#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#1565C0,#1976D2);padding:20px;}
+.auth-card{background:#fff;border-radius:24px;padding:32px 28px;width:100%;max-width:380px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.25);}
+.app-logo{font-size:36px;font-weight:900;color:var(--blue);margin-bottom:4px}
+.app-tagline{font-size:12px;color:var(--gray);margin-bottom:24px;letter-spacing:0.5px}
+.auth-title{font-size:16px;font-weight:700;color:var(--text);margin-bottom:18px}
+.setup-form .ff{text-align:left;margin-bottom:14px}
+.setup-form .ff label{font-size:11px;font-weight:700;color:var(--gray);text-transform:uppercase;display:block;margin-bottom:5px}
+.setup-form .ff input,.setup-form .ff select{width:100%;padding:11px 14px;border:2px solid #eee;border-radius:10px;font-size:14px;outline:none;transition:border-color 0.15s;}
+.setup-form .ff input:focus,.setup-form .ff select:focus{border-color:var(--blue)}
+.setup-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn-full{width:100%;padding:14px;border-radius:12px;border:none;cursor:pointer;font-size:15px;font-weight:700;background:var(--blue);color:#fff;margin-top:6px;transition:background 0.15s}
+.btn-full:hover{background:var(--blue2)}
+.pin-dots{display:flex;gap:14px;justify-content:center;margin-bottom:24px}
+.pin-dot{width:22px;height:22px;border-radius:50%;border:2px solid #ddd;background:#fff;transition:all 0.2s}
+.pin-dot.filled{background:var(--blue);border-color:var(--blue)}
+.pin-dot.error{background:var(--red);border-color:var(--red)}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px}
+.pin-btn{padding:20px;font-size:24px;font-weight:700;border:2px solid #eee;border-radius:16px;background:#fff;cursor:pointer;color:var(--text);transition:all 0.1s;user-select:none;min-height:64px}
+.pin-btn:active,.pin-btn:hover{background:var(--blue);color:#fff;border-color:var(--blue)}
+.pin-del{background:#f8f8f8;color:var(--gray);font-size:15px}
+.pin-error{color:var(--red);font-size:12px;min-height:18px}
+.user-greeting{font-size:18px;font-weight:700;color:var(--blue);margin-bottom:6px}
+#app{display:none;flex-direction:column;min-height:100vh;padding-bottom:80px}
+#topbar{background:var(--blue);color:#fff;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,0.2);}
+#topbar .tname{font-size:17px;font-weight:700}
+#topbar .tdate{font-size:12px;opacity:0.8;margin-top:2px}
+.topbar-right{display:flex;gap:8px;align-items:center}
+.icon-btn{background:rgba(255,255,255,0.15);border:none;color:#fff;width:40px;height:40px;border-radius:50%;cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center}
+.icon-btn:active{background:rgba(255,255,255,0.3)}
+.page{display:none;padding:14px}
+.page.active{display:block}
+#bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e0e0e0;display:flex;z-index:100;box-shadow:0 -2px 10px rgba(0,0,0,0.08);padding-bottom:env(safe-area-inset-bottom);}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:9px 2px;cursor:pointer;color:var(--gray);transition:color 0.15s;font-size:9px;gap:2px;border:none;background:none;min-height:56px}
+.nav-item.active{color:var(--blue)}
+.nav-item .ico{font-size:20px;transition:transform 0.15s}
+.nav-item.active .ico{transform:scale(1.15)}
+#fab{position:fixed;bottom:70px;right:16px;z-index:200;width:54px;height:54px;border-radius:50%;background:var(--blue);color:#fff;font-size:26px;border:none;cursor:pointer;box-shadow:0 4px 16px rgba(25,118,210,0.4);display:flex;align-items:center;justify-content:center;transition:all 0.2s;}
+#fab-menu{display:none;position:fixed;bottom:134px;right:16px;z-index:200;flex-direction:column;gap:10px;align-items:flex-end;}
+#fab-menu.open{display:flex}
+.fab-item{display:flex;align-items:center;gap:10px;cursor:pointer;}
+.fab-item-label{background:#1a1a2e;color:#fff;padding:7px 14px;border-radius:20px;font-size:13px;font-weight:600;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,0.2);}
+.fab-item-btn{width:44px;height:44px;border-radius:50%;border:none;cursor:pointer;font-size:19px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.15);}
+.card{background:#fff;border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 1px 6px rgba(0,0,0,0.07)}
+.card-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.dash-card{background:#fff;border-radius:16px;padding:14px;box-shadow:0 1px 6px rgba(0,0,0,0.07);text-align:center;}
+.dash-card .dico{font-size:28px;margin-bottom:4px}
+.dash-card .dlabel{font-size:10px;color:var(--gray);font-weight:600;text-transform:uppercase}
+.dash-card .dval{font-size:22px;font-weight:800;color:var(--text);margin-top:2px}
+.dash-card .dval.low{color:var(--orange)}
+.dash-card .dval.high{color:var(--red)}
+.dash-card .dval.normal{color:var(--green)}
+.dash-card .dsub{font-size:10px;color:var(--gray);margin-top:2px}
+.status{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.status.low{background:#FFF3E0;color:var(--orange)}
+.status.high{background:#FFEBEE;color:var(--red)}
+.status.normal{background:#E8F5E9;color:var(--green)}
+.ff{margin-bottom:14px}
+.ff label{font-size:12px;font-weight:700;color:var(--gray);text-transform:uppercase;display:block;margin-bottom:6px}
+.ff input,.ff select,.ff textarea{width:100%;padding:13px 16px;border:2px solid #eee;border-radius:12px;font-size:16px;outline:none;transition:border-color 0.15s;-webkit-appearance:none;}
+.ff input:focus,.ff select:focus,.ff textarea:focus{border-color:var(--blue)}
+.ff textarea{resize:none;height:80px;font-size:15px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form-row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.btn{padding:13px 18px;border-radius:12px;border:none;cursor:pointer;font-size:15px;font-weight:700;transition:all 0.15s;min-height:48px}
+.btn:active{transform:scale(0.97)}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-danger{background:#FFEBEE;color:var(--red)}
+.btn-sm{padding:7px 13px;font-size:12px;border-radius:9px;min-height:34px}
+.entry-list{display:flex;flex-direction:column;gap:8px}
+.entry-item{background:#f9f9f9;border-radius:14px;padding:13px 15px;display:flex;align-items:center;justify-content:space-between;border-left:4px solid #eee;}
+.entry-item.low{border-left-color:var(--orange)}
+.entry-item.high{border-left-color:var(--red)}
+.entry-item.normal{border-left-color:var(--green)}
+.entry-item .einfo{flex:1}
+.entry-item .eval{font-size:20px;font-weight:800}
+.entry-item .emeta{font-size:12px;color:var(--gray);margin-top:2px}
+.entry-item .edel{background:none;border:none;cursor:pointer;color:#ddd;font-size:14px;padding:4px 8px;border-radius:6px}
+.entry-item .edel:hover{color:var(--red);background:#FFEBEE}
+.chart-wrap{position:relative;height:190px;margin:8px 0}
+.med-item{background:#f9f9f9;border-radius:14px;padding:13px 15px;display:flex;align-items:center;gap:13px;margin-bottom:10px;}
+.med-item .mico{font-size:28px}
+.med-item .minfo{flex:1}
+.med-item .mname{font-size:15px;font-weight:700}
+.med-item .mmeta{font-size:12px;color:var(--gray);margin-top:2px}
+.med-item .mcheck{width:34px;height:34px;border-radius:10px;border:2px solid #ddd;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:17px;transition:all 0.15s;flex-shrink:0}
+.med-item .mcheck.done{background:var(--green);border-color:var(--green);color:#fff}
+.tip-item{display:flex;gap:13px;align-items:flex-start;padding:12px;background:#f9f9f9;border-radius:14px;margin-bottom:10px;}
+.tip-item .tipp{font-size:26px;flex-shrink:0}
+.tip-item .tiptext{font-size:14px;line-height:1.6}
+.tip-item .tiptitle{font-size:14px;font-weight:700;margin-bottom:3px}
+.report-section{margin-bottom:14px}
+.report-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #f0f0f0;font-size:14px}
+.report-row:last-child{border-bottom:none}
+.report-label{color:var(--gray)}
+.report-val{font-weight:700}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:300;align-items:flex-end;justify-content:center;}
+.overlay.show{display:flex}
+.sheet{background:#fff;border-radius:24px 24px 0 0;padding:22px 20px;width:100%;max-width:500px;max-height:92vh;overflow-y:auto;padding-bottom:calc(22px + env(safe-area-inset-bottom));}
+.sheet-handle{width:44px;height:5px;background:#ddd;border-radius:3px;margin:0 auto 16px}
+.sheet h3{font-size:18px;font-weight:700;margin-bottom:16px}
+.sheet-actions{display:flex;gap:10px;margin-top:14px}
+.empty{text-align:center;padding:36px 20px;color:#bbb}
+.empty .eico{font-size:42px;margin-bottom:10px}
+.empty p{font-size:13px}
+.sec-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.sec-title{font-size:16px;font-weight:700}
+.trend-alert{border-radius:14px;padding:13px 16px;margin-bottom:12px;display:flex;align-items:center;gap:12px}
+.trend-alert.warning{background:#FFF3E0;border-left:4px solid var(--orange)}
+.trend-alert.danger{background:#FFEBEE;border-left:4px solid var(--red)}
+.trend-alert.success{background:#E8F5E9;border-left:4px solid var(--green)}
+.trend-alert .ta-ico{font-size:24px}
+.trend-alert .ta-text{font-size:13px;font-weight:600}
+.trend-alert .ta-sub{font-size:11px;color:var(--gray);margin-top:2px}
+.hba1c-badge{display:inline-block;padding:6px 16px;border-radius:20px;font-weight:800;font-size:18px}
+.hba1c-good{background:#E8F5E9;color:#2E7D32}
+.hba1c-ok{background:#FFF3E0;color:#E65100}
+.hba1c-bad{background:#FFEBEE;color:#C62828}
+.more-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.more-card{background:#fff;border-radius:16px;padding:18px 14px;box-shadow:0 1px 6px rgba(0,0,0,0.07);text-align:center;cursor:pointer;transition:transform 0.15s}
+.more-card:active{transform:scale(0.96)}
+.more-card .mc-ico{font-size:32px;margin-bottom:8px}
+.more-card .mc-name{font-size:14px;font-weight:700}
+.more-card .mc-sub{font-size:11px;color:var(--gray);margin-top:3px}
+.stok-low{background:#FFEBEE;color:var(--red);padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700}
+.toggle-wrap{display:flex;align-items:center;justify-content:space-between;padding:10px 0}
+.toggle{width:46px;height:26px;background:#ddd;border-radius:13px;position:relative;cursor:pointer;transition:background 0.2s}
+.toggle.on{background:var(--green)}
+.toggle::after{content:'';position:absolute;width:20px;height:20px;background:#fff;border-radius:50%;top:3px;left:3px;transition:left 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.2)}
+.toggle.on::after{left:23px}
+@media print{#login-screen,#setup-screen,#bottom-nav,#topbar,#fab,#fab-menu,.btn{display:none!important}#app{display:block!important;padding-bottom:0}.page{display:none!important}#page-rapor{display:block!important;padding:0}.card{box-shadow:none;border:1px solid #eee}@page{size:A4;margin:1.5cm}}
+</style>
+</head>
+<body>
+<div id="setup-screen">
+  <div class="auth-card">
+    <div class="app-logo">💉 DiyabetTakip</div>
+    <div class="app-tagline">Kişisel Sağlık Takip Uygulaması</div>
+    <div class="auth-title">Profilinizi Oluşturun</div>
+    <div class="setup-form">
+      <div class="setup-row">
+        <div class="ff"><label>Ad</label><input type="text" id="s-ad" placeholder="Adınız"></div>
+        <div class="ff"><label>Soyad</label><input type="text" id="s-soyad" placeholder="Soyadınız"></div>
+      </div>
+      <div class="ff"><label>Doğum Tarihi</label><input type="date" id="s-dogum"></div>
+      <div class="ff"><label>Diyabet Tipi</label>
+        <select id="s-tip"><option value="tip1">Tip 1</option><option value="tip2" selected>Tip 2</option><option value="gestasyonel">Gestasyonel</option><option value="prediabet">Prediabet</option></select>
+      </div>
+      <div class="setup-row">
+        <div class="ff"><label>Hedef Min (mg/dL)</label><input type="number" id="s-min" value="70"></div>
+        <div class="ff"><label>Hedef Max (mg/dL)</label><input type="number" id="s-max" value="180"></div>
+      </div>
+      <div class="ff"><label>Doktor Adı (isteğe bağlı)</label><input type="text" id="s-doktor" placeholder="Dr. ..."></div>
+      <div class="ff"><label>4 Haneli Erişim Kodu</label><input type="number" id="s-pin" placeholder="1234" maxlength="4"></div>
+      <button class="btn-full" onclick="saveSetup()">Başla 🚀</button>
+    </div>
+  </div>
+</div>
+
+<div id="login-screen" style="display:none">
+  <div class="auth-card">
+    <div class="app-logo">💉 DiyabetTakip</div>
+    <div class="app-tagline">Kişisel Sağlık Takip Uygulaması</div>
+    <div class="user-greeting" id="login-greeting"></div>
+    <div class="auth-title">Erişim Kodunuz</div>
+    <div class="pin-dots"><div class="pin-dot" id="d0"></div><div class="pin-dot" id="d1"></div><div class="pin-dot" id="d2"></div><div class="pin-dot" id="d3"></div></div>
+    <div class="pin-pad">
+      <button class="pin-btn" onclick="pinPress('1')">1</button><button class="pin-btn" onclick="pinPress('2')">2</button><button class="pin-btn" onclick="pinPress('3')">3</button>
+      <button class="pin-btn" onclick="pinPress('4')">4</button><button class="pin-btn" onclick="pinPress('5')">5</button><button class="pin-btn" onclick="pinPress('6')">6</button>
+      <button class="pin-btn" onclick="pinPress('7')">7</button><button class="pin-btn" onclick="pinPress('8')">8</button><button class="pin-btn" onclick="pinPress('9')">9</button>
+      <button class="pin-btn pin-del" onclick="pinClear()">Temizle</button><button class="pin-btn" onclick="pinPress('0')">0</button><button class="pin-btn pin-del" onclick="pinDel()">⌫</button>
+    </div>
+    <div class="pin-error" id="pin-error"></div>
+  </div>
+</div>
+
+<div id="app">
+  <div id="topbar">
+    <div><div class="tname" id="tb-name">DiyabetTakip</div><div class="tdate" id="tb-date"></div></div>
+    <div class="topbar-right">
+      <button class="icon-btn" id="notif-btn" onclick="toggleNotif()" title="Bildirimler">🔔</button>
+      <button class="icon-btn" onclick="showPage('page-rapor')" title="Rapor">📋</button>
+      <button class="icon-btn" onclick="window.print()" title="Yazdır">🖨</button>
+    </div>
+  </div>
+
+  <div class="page active" id="page-home">
+    <div id="trend-alerts"></div>
+    <div class="dash-grid">
+      <div class="dash-card"><div class="dico">🩸</div><div class="dlabel">Son Kan Şekeri</div><div class="dval" id="d-son-ks">-</div><div class="dsub" id="d-son-ks-zaman">-</div></div>
+      <div class="dash-card"><div class="dico">❤️</div><div class="dlabel">Son Tansiyon</div><div class="dval" id="d-son-tans">-</div><div class="dsub" id="d-son-tans-sub">mmHg</div></div>
+      <div class="dash-card"><div class="dico">💊</div><div class="dlabel">Bugünkü İlaçlar</div><div class="dval" id="d-ilac">-</div><div class="dsub" id="d-ilac-sub">tanımlanmadı</div></div>
+      <div class="dash-card"><div class="dico">📊</div><div class="dlabel">Bu Hafta Ort.</div><div class="dval" id="d-hafta-ort">-</div><div class="dsub">mg/dL</div></div>
+    </div>
+    <div class="dash-grid">
+      <div class="dash-card"><div class="dico">🧪</div><div class="dlabel">Tahmini HbA1c</div><div class="dval" id="d-hba1c">-</div><div class="dsub">% (son 90 gün)</div></div>
+      <div class="dash-card"><div class="dico">⚖️</div><div class="dlabel">Son Kilo</div><div class="dval" id="d-son-kilo">-</div><div class="dsub">kg</div></div>
+    </div>
+    <div class="card"><div class="card-title">📈 Son 7 Gün Kan Şekeri</div><div class="chart-wrap"><canvas id="homeChart"></canvas></div></div>
+    <div class="card"><div class="card-title">💊 Bugünkü İlaçlar</div><div id="home-ilac-list"></div></div>
+    <div class="card"><div class="card-title">🍽 Bugünkü Öğünler <span id="home-kalori" style="font-size:12px;color:var(--gray);font-weight:400;margin-left:auto"></span></div><div id="home-yemek-list"></div></div>
+  </div>
+
+  <div class="page" id="page-kan">
+    <div class="sec-header"><div class="sec-title">🩸 Kan Şekeri</div><button class="btn btn-primary btn-sm" onclick="openSheet('sheet-kan')">+ Ekle</button></div>
+    <div class="card"><div class="card-title">Son 14 Gün</div><div class="chart-wrap"><canvas id="kanChart"></canvas></div></div>
+    <div class="card"><div class="card-title">İstatistikler</div>
+      <div class="report-row"><span class="report-label">Ortalama</span><span class="report-val" id="ks-ort">-</span></div>
+      <div class="report-row"><span class="report-label">En Düşük</span><span class="report-val" id="ks-min">-</span></div>
+      <div class="report-row"><span class="report-label">En Yüksek</span><span class="report-val" id="ks-max">-</span></div>
+      <div class="report-row"><span class="report-label">Hedef Aralıkta</span><span class="report-val" id="ks-hedef">-</span></div>
+      <div class="report-row"><span class="report-label">Tahmini HbA1c</span><span class="report-val" id="ks-hba1c">-</span></div>
+    </div>
+    <div id="kan-list" class="entry-list"></div>
+  </div>
+
+  <div class="page" id="page-ilac">
+    <div class="sec-header"><div class="sec-title">💊 İlaçlar & İnsülin</div><button class="btn btn-primary btn-sm" onclick="openSheet('sheet-ilac')">+ Ekle</button></div>
+    <div id="stok-uyari-list"></div>
+    <div class="card"><div class="card-title">Bugünkü İlaçlar</div><div id="ilac-bugun-list"></div></div>
+    <div class="card"><div class="card-title">İnsülin Uyum Takvimi (Son 14 Gün)</div><div class="chart-wrap"><canvas id="insulinChart"></canvas></div></div>
+    <div class="card"><div class="card-title">Tüm İlaçlarım</div><div id="ilac-tum-list"></div></div>
+  </div>
+
+  <div class="page" id="page-tans">
+    <div class="sec-header"><div class="sec-title">❤️ Tansiyon Takibi</div><button class="btn btn-primary btn-sm" onclick="openSheet('sheet-tans')">+ Ekle</button></div>
+    <div class="card"><div class="card-title">Son 14 Gün</div><div class="chart-wrap"><canvas id="tansChart"></canvas></div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px">
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px"><div style="width:11px;height:11px;border-radius:50%;background:var(--blue)"></div>Sistolik</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px"><div style="width:11px;height:11px;border-radius:50%;background:var(--teal)"></div>Diastolik</div>
+      </div>
+    </div>
+    <div class="card"><div class="card-title">İstatistikler</div>
+      <div class="report-row"><span class="report-label">Ort. Sistolik</span><span class="report-val" id="tns-sis-ort">-</span></div>
+      <div class="report-row"><span class="report-label">Ort. Diastolik</span><span class="report-val" id="tns-dia-ort">-</span></div>
+      <div class="report-row"><span class="report-label">Ort. Nabız</span><span class="report-val" id="tns-nab-ort">-</span></div>
+      <div class="report-row"><span class="report-label">Genel Durum</span><span class="report-val" id="tns-durum">-</span></div>
+    </div>
+    <div id="tans-list" class="entry-list"></div>
+  </div>
+
+  <div class="page" id="page-yemek">
+    <div class="sec-header"><div class="sec-title">🍽 Yemek Günlüğü</div><button class="btn btn-primary btn-sm" onclick="openSheet('sheet-yemek')">+ Ekle</button></div>
+    <div class="card" id="kalori-ozet-card" style="display:none"><div class="card-title">Bugünkü Kalori</div><div style="text-align:center;padding:8px"><div style="font-size:36px;font-weight:800;color:var(--orange)" id="bugun-kalori-val">0</div><div style="font-size:12px;color:var(--gray)">kcal</div></div></div>
+    <div id="yemek-list"></div>
+  </div>
+
+  <div class="page" id="page-daha">
+    <div class="sec-title" style="margin-bottom:14px">📂 Daha Fazla</div>
+    <div class="more-grid">
+      <div class="more-card" onclick="showSubPage('kilo')"><div class="mc-ico">⚖️</div><div class="mc-name">Kilo Takibi</div><div class="mc-sub" id="mc-kilo-sub">-</div></div>
+      <div class="more-card" onclick="showSubPage('hba1c')"><div class="mc-ico">🧪</div><div class="mc-name">HbA1c</div><div class="mc-sub" id="mc-hba1c-sub">-</div></div>
+      <div class="more-card" onclick="showSubPage('oneri')"><div class="mc-ico">💡</div><div class="mc-name">Öneriler</div><div class="mc-sub">Beslenme & Egzersiz</div></div>
+      <div class="more-card" onclick="showSubPage('ayarlar')"><div class="mc-ico">⚙️</div><div class="mc-name">Ayarlar</div><div class="mc-sub">Profil & Bildirim</div></div>
+    </div>
+    <div id="subpage-content"></div>
+  </div>
+
+  <div class="page" id="page-rapor">
+    <div class="sec-title" style="margin-bottom:12px">📋 Doktor Raporu</div>
+    <div class="card" id="rapor-content">
+      <div class="report-section">
+        <div class="card-title">Hasta Bilgileri</div>
+        <div class="report-row"><span class="report-label">Ad Soyad</span><span class="report-val" id="r-adsoyad">-</span></div>
+        <div class="report-row"><span class="report-label">Doğum Tarihi</span><span class="report-val" id="r-dogum">-</span></div>
+        <div class="report-row"><span class="report-label">Diyabet Tipi</span><span class="report-val" id="r-tip">-</span></div>
+        <div class="report-row"><span class="report-label">Doktor</span><span class="report-val" id="r-doktor">-</span></div>
+        <div class="report-row"><span class="report-label">Rapor Tarihi</span><span class="report-val" id="r-tarih">-</span></div>
+      </div>
+      <div class="report-section">
+        <div class="card-title">Kan Şekeri (Son 30 Gün)</div>
+        <div class="report-row"><span class="report-label">Ortalama</span><span class="report-val" id="r-ort">-</span></div>
+        <div class="report-row"><span class="report-label">En Düşük / Yüksek</span><span class="report-val"><span id="r-min">-</span> / <span id="r-max">-</span></span></div>
+        <div class="report-row"><span class="report-label">Hedef Aralıkta</span><span class="report-val" id="r-hedef">-</span></div>
+        <div class="report-row"><span class="report-label">Toplam Ölçüm</span><span class="report-val" id="r-olcum">-</span></div>
+        <div class="report-row"><span class="report-label">Tahmini HbA1c</span><span class="report-val" id="r-hba1c">-</span></div>
+      </div>
+      <div class="report-section">
+        <div class="card-title">Tansiyon (Son 30 Gün)</div>
+        <div class="report-row"><span class="report-label">Ort. Sistolik</span><span class="report-val" id="r-tns-sis">-</span></div>
+        <div class="report-row"><span class="report-label">Ort. Diastolik</span><span class="report-val" id="r-tns-dia">-</span></div>
+        <div class="report-row"><span class="report-label">Ort. Nabız</span><span class="report-val" id="r-tns-nab">-</span></div>
+      </div>
+      <div class="report-section">
+        <div class="card-title">Kilo</div>
+        <div class="report-row"><span class="report-label">Son Kilo</span><span class="report-val" id="r-kilo">-</span></div>
+        <div class="report-row"><span class="report-label">Değişim</span><span class="report-val" id="r-kilo-degisim">-</span></div>
+      </div>
+      <div class="report-section">
+        <div class="card-title">Kullanılan İlaçlar</div>
+        <div id="r-ilac-list"></div>
+      </div>
+      <div id="r-hba1c-list-section" style="display:none">
+        <div class="card-title" style="margin-top:12px">HbA1c Laboratuvar Sonuçları</div>
+        <div id="r-hba1c-list"></div>
+      </div>
+      <div style="margin-top:14px;padding:11px;background:#FFF3E0;border-radius:10px;font-size:11px;color:#888;text-align:center">⚠️ Bu uygulama bilgi amaçlıdır. Doktor tavsiyesinin yerini tutmaz.</div>
+    </div>
+    <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="window.print()">🖨 Raporu Yazdır</button>
+    <button class="btn" style="width:100%;margin-top:8px;background:#E3F2FD;color:var(--blue)" onclick="raporuKopyala()">📋 Raporu Kopyala (WhatsApp/Mail)</button>
+  </div>
+
+  <div id="bottom-nav">
+    <button class="nav-item active" onclick="showPage('page-home')" id="nav-home"><span class="ico">🏠</span>Ana Sayfa</button>
+    <button class="nav-item" onclick="showPage('page-kan')" id="nav-kan"><span class="ico">🩸</span>Kan Şekeri</button>
+    <button class="nav-item" onclick="showPage('page-ilac')" id="nav-ilac"><span class="ico">💊</span>İlaçlar</button>
+    <button class="nav-item" onclick="showPage('page-tans')" id="nav-tans"><span class="ico">❤️</span>Tansiyon</button>
+    <button class="nav-item" onclick="showPage('page-yemek')" id="nav-yemek"><span class="ico">🍽</span>Yemek</button>
+    <button class="nav-item" onclick="showPage('page-daha')" id="nav-daha"><span class="ico">📂</span>Daha</button>
+  </div>
+</div>
+
+<button id="fab" onclick="toggleFab()">＋</button>
+<div id="fab-menu">
+  <div class="fab-item" onclick="closeFab();openSheet('sheet-tans')"><span class="fab-item-label">Tansiyon Ölç</span><button class="fab-item-btn" style="background:#E91E63;color:#fff">❤️</button></div>
+  <div class="fab-item" onclick="closeFab();openSheet('sheet-yemek')"><span class="fab-item-label">Yemek Ekle</span><button class="fab-item-btn" style="background:#FF7043;color:#fff">🍽</button></div>
+  <div class="fab-item" onclick="closeFab();openSheet('sheet-kilo')"><span class="fab-item-label">Kilo Ekle</span><button class="fab-item-btn" style="background:var(--purple);color:#fff">⚖️</button></div>
+  <div class="fab-item" onclick="closeFab();openSheet('sheet-ilac')"><span class="fab-item-label">İlaç Ekle</span><button class="fab-item-btn" style="background:var(--green);color:#fff">💊</button></div>
+  <div class="fab-item" onclick="closeFab();openSheet('sheet-kan')"><span class="fab-item-label">Kan Şekeri Ölç</span><button class="fab-item-btn" style="background:var(--red);color:#fff">🩸</button></div>
+</div>
+
+<!-- SHEETS -->
+<div class="overlay" id="sheet-kan"><div class="sheet"><div class="sheet-handle"></div><h3>🩸 Kan Şekeri Ekle</h3>
+  <div class="form-row">
+    <div class="ff"><label>Değer (mg/dL)</label><input type="number" id="k-deger" placeholder="120" inputmode="numeric"></div>
+    <div class="ff"><label>Ölçüm Zamanı</label><select id="k-zaman"><option>Sabah (Aç)</option><option>Sabah (Tok)</option><option>Öğle (Aç)</option><option>Öğle (Tok)</option><option>Akşam (Aç)</option><option>Akşam (Tok)</option><option>Gece</option></select></div>
+  </div>
+  <div class="form-row"><div class="ff"><label>Tarih</label><input type="date" id="k-tarih"></div><div class="ff"><label>Saat</label><input type="time" id="k-saat"></div></div>
+  <div class="ff"><label>Not</label><input type="text" id="k-not" placeholder="Notunuz..."></div>
+  <div class="sheet-actions"><button class="btn btn-primary" style="flex:1" onclick="addKanSekeri()">Kaydet</button><button class="btn" style="background:#f0f0f0" onclick="closeSheet('sheet-kan')">İptal</button></div>
+</div></div>
+
+<div class="overlay" id="sheet-ilac"><div class="sheet"><div class="sheet-handle"></div><h3>💊 İlaç / İnsülin Ekle</h3>
+  <div class="ff"><label>İlaç Adı</label><input type="text" id="i-ad" placeholder="Metformin, Lantus, vb."></div>
+  <div class="form-row">
+    <div class="ff"><label>Doz</label><input type="text" id="i-doz" placeholder="500mg, 10ü"></div>
+    <div class="ff"><label>Tür</label><select id="i-tur"><option>Ağız içi</option><option>İnsülin</option><option>Enjeksiyon</option><option>Diğer</option></select></div>
+  </div>
+  <div class="form-row">
+    <div class="ff"><label>Kullanım Zamanı</label><select id="i-zaman"><option>Sabah</option><option>Öğle</option><option>Akşam</option><option>Yatmadan önce</option><option>Sabah + Akşam</option><option>Günde 3 kez</option></select></div>
+    <div class="ff"><label>Stok (adet)</label><input type="number" id="i-stok" placeholder="30" min="0"></div>
+  </div>
+  <div class="ff"><label>Düşük Stok Uyarısı (adet)</label><input type="number" id="i-stok-uyari" placeholder="7" min="1"></div>
+  <div class="sheet-actions"><button class="btn btn-primary" style="flex:1" onclick="addIlac()">Kaydet</button><button class="btn" style="background:#f0f0f0" onclick="closeSheet('sheet-ilac')">İptal</button></div>
+</div></div>
+
+<div class="overlay" id="sheet-tans"><div class="sheet"><div class="sheet-handle"></div><h3>❤️ Tansiyon Ölç</h3>
+  <div class="form-row3">
+    <div class="ff"><label>Sistolik</label><input type="number" id="t-sis" placeholder="120" inputmode="numeric"></div>
+    <div class="ff"><label>Diastolik</label><input type="number" id="t-dia" placeholder="80" inputmode="numeric"></div>
+    <div class="ff"><label>Nabız</label><input type="number" id="t-nab" placeholder="72" inputmode="numeric"></div>
+  </div>
+  <div class="form-row"><div class="ff"><label>Tarih</label><input type="date" id="t-tarih"></div><div class="ff"><label>Saat</label><input type="time" id="t-saat"></div></div>
+  <div class="ff"><label>Not</label><input type="text" id="t-not" placeholder="Notunuz..."></div>
+  <div id="tans-kategori-goster" style="padding:10px;border-radius:10px;text-align:center;font-weight:700;font-size:14px;margin-bottom:10px;display:none"></div>
+  <div class="sheet-actions"><button class="btn btn-primary" style="flex:1" onclick="addTansiyon()">Kaydet</button><button class="btn" style="background:#f0f0f0" onclick="closeSheet('sheet-tans')">İptal</button></div>
+</div></div>
+
+<div class="overlay" id="sheet-kilo"><div class="sheet"><div class="sheet-handle"></div><h3>⚖️ Kilo Ekle</h3>
+  <div class="form-row"><div class="ff"><label>Kilo (kg)</label><input type="number" id="ki-deger" placeholder="75" step="0.1" inputmode="decimal"></div><div class="ff"><label>Tarih</label><input type="date" id="ki-tarih"></div></div>
+  <div class="ff"><label>Not</label><input type="text" id="ki-not" placeholder="Notunuz..."></div>
+  <div class="sheet-actions"><button class="btn btn-primary" style="flex:1" onclick="addKilo()">Kaydet</button><button class="btn" style="background:#f0f0f0" onclick="closeSheet('sheet-kilo')">İptal</button></div>
+</div></div>
+
+<div class="overlay" id="sheet-hba1c"><div class="sheet"><div class="sheet-handle"></div><h3>🧪 HbA1c Ekle</h3>
+  <div class="form-row"><div class="ff"><label>HbA1c (%)</label><input type="number" id="h-deger" placeholder="7.2" step="0.1" inputmode="decimal"></div><div class="ff"><label>Tarih</label><input type="date" id="h-tarih"></div></div>
+  <div class="ff"><label>Not (Laboratuvar, doktor notu)</label><input type="text" id="h-not" placeholder="..."></div>
+  <div class="sheet-actions"><button class="btn btn-primary" style="flex:1" onclick="addHba1c()">Kaydet</button><button class="btn" style="background:#f0f0f0" onclick="closeSheet('sheet-hba1c')">İptal</button></div>
+</div></div>
+
+<div class="overlay" id="sheet-yemek"><div class="sheet"><div class="sheet-handle"></div><h3>🍽 Yemek Ekle</h3>
+  <div class="form-row">
+    <div class="ff"><label>Öğün</label><select id="y-ogun"><option>Sabah Kahvaltısı</option><option>Ara Öğün (Sabah)</option><option>Öğle Yemeği</option><option>Ara Öğün (Öğle)</option><option>Akşam Yemeği</option><option>Gece</option></select></div>
+    <div class="ff"><label>Tarih</label><input type="date" id="y-tarih"></div>
+  </div>
+  <div class="ff"><label>Ne Yedim / Ne İçtim</label><textarea id="y-icerik" placeholder="Yediklerinizi yazın..."></textarea></div>
+  <div class="form-row"><div class="ff"><label>Kalori (kcal)</label><input type="number" id="y-kalori" placeholder="400" inputmode="numeric"></div><div class="ff"><label>Not</label><input type="text" id="y-not" placeholder="Nasıl hissettim..."></div></div>
+  <div class="sheet-actions"><button class="btn btn-primary" style="flex:1" onclick="addYemek()">Kaydet</button><button class="btn" style="background:#f0f0f0" onclick="closeSheet('sheet-yemek')">İptal</button></div>
+</div></div>
+
+<script>
+function loadData(){const d=localStorage.getItem('diyabet_app_v2');if(d)return JSON.parse(d);const old=localStorage.getItem('diyabet_app_v1');if(old){const o=JSON.parse(old);return{profile:o.profile,kanSekeri:o.kanSekeri||[],ilaclar:o.ilaclar||[],kilolar:o.kilolar||[],yemekler:o.yemekler||[],ilacTakip:o.ilacTakip||{},tansiyon:[],hba1c:[],insulinLog:[]};}return{profile:null,kanSekeri:[],ilaclar:[],kilolar:[],yemekler:[],ilacTakip:{},tansiyon:[],hba1c:[],insulinLog:[]};}
+function save(){localStorage.setItem('diyabet_app_v2',JSON.stringify(appData));}
+let appData=loadData();
+window.addEventListener('load',()=>{
+  const today=new Date().toISOString().split('T')[0];
+  ['k-tarih','ki-tarih','y-tarih','t-tarih','h-tarih'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=today;});
+  const now=new Date().toTimeString().slice(0,5);
+  ['k-saat','t-saat'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=now;});
+  ['t-sis','t-dia','t-nab'].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('input',updateTansKategori);});
+  if(!appData.profile){document.getElementById('setup-screen').style.display='flex';}
+  else{document.getElementById('setup-screen').style.display='none';document.getElementById('login-screen').style.display='flex';document.getElementById('login-greeting').textContent='Hoş geldiniz, '+appData.profile.ad+'!';}
+  updateNotifBtn();
+});
+function saveSetup(){const ad=document.getElementById('s-ad').value.trim();const pin=String(document.getElementById('s-pin').value).trim();if(!ad){alert('Lütfen adınızı girin');return;}if(pin.length!==4||isNaN(pin)){alert('Lütfen 4 haneli sayısal bir kod girin');return;}appData.profile={ad,soyad:document.getElementById('s-soyad').value.trim(),dogum:document.getElementById('s-dogum').value,tip:document.getElementById('s-tip').value,min:parseInt(document.getElementById('s-min').value)||70,max:parseInt(document.getElementById('s-max').value)||180,doktor:document.getElementById('s-doktor').value.trim(),pin};save();document.getElementById('setup-screen').style.display='none';openApp();}
+let pinVal='';
+function pinPress(n){if(pinVal.length>=4)return;pinVal+=n;updateDots();if(pinVal.length===4)setTimeout(checkPin,150);}
+function pinDel(){pinVal=pinVal.slice(0,-1);updateDots();}
+function pinClear(){pinVal='';updateDots();}
+function updateDots(err){for(let i=0;i<4;i++){const d=document.getElementById('d'+i);d.className='pin-dot'+(i<pinVal.length?(err?' error':' filled'):'');}}
+function checkPin(){if(pinVal===appData.profile.pin){openApp();}else{updateDots(true);document.getElementById('pin-error').textContent='Hatalı kod';setTimeout(()=>{pinVal='';updateDots();document.getElementById('pin-error').textContent='';},1000);}}
+function openApp(){document.getElementById('login-screen').style.display='none';document.getElementById('app').style.display='flex';const p=appData.profile;document.getElementById('tb-name').textContent=p.ad+' '+p.soyad;document.getElementById('tb-date').textContent=new Date().toLocaleDateString('tr-TR',{weekday:'long',day:'numeric',month:'long'});renderAll();istek_bildirim_izni();}
+function showPage(id){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));const map={'page-home':'nav-home','page-kan':'nav-kan','page-ilac':'nav-ilac','page-tans':'nav-tans','page-yemek':'nav-yemek','page-daha':'nav-daha','page-rapor':null};if(map[id])document.getElementById(map[id]).classList.add('active');if(id==='page-kan'){renderKanChart();renderKanStats();}if(id==='page-tans'){renderTansChart();renderTansStats();}if(id==='page-ilac')renderInsChart();if(id==='page-rapor')renderRapor();if(id==='page-daha')renderDahaCards();}
+let fabOpen=false;
+function toggleFab(){fabOpen=!fabOpen;document.getElementById('fab-menu').classList.toggle('open',fabOpen);document.getElementById('fab').textContent=fabOpen?'✕':'＋';document.getElementById('fab').style.background=fabOpen?'#333':'var(--blue)';}
+function closeFab(){fabOpen=false;document.getElementById('fab-menu').classList.remove('open');document.getElementById('fab').textContent='＋';document.getElementById('fab').style.background='var(--blue)';}
+function openSheet(id){document.getElementById(id).classList.add('show');}
+function closeSheet(id){document.getElementById(id).classList.remove('show');}
+document.querySelectorAll('.overlay').forEach(o=>{o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('show');});});
+function getStatus(val){const min=appData.profile?.min||70,max=appData.profile?.max||180;if(val<min)return'low';if(val>max)return'high';return'normal';}
+function statusText(s){return s==='low'?'Düşük':s==='high'?'Yüksek':'Normal';}
+function fmt(dt){return new Date(dt).toLocaleDateString('tr-TR',{day:'numeric',month:'short'});}
+function n(v){return parseFloat(String(v).replace(',','.'))||0;}
+function avg(arr){return arr.length?Math.round(arr.reduce((a,b)=>a+b,0)/arr.length):0;}
+function hba1cFromAvg(a){return Math.round(((a+46.7)/28.7)*10)/10;}
+function tansKat(sis,dia){if(sis<120&&dia<80)return{text:'Normal',cls:'success'};if(sis<130&&dia<80)return{text:'Yüksek Normal',cls:'warning'};if(sis<140||dia<90)return{text:'Evre 1 Yüksek',cls:'warning'};return{text:'Evre 2 Yüksek',cls:'danger'};}
+function addKanSekeri(){const val=n(document.getElementById('k-deger').value);if(!val){alert('Değer girin');return;}appData.kanSekeri.unshift({id:Date.now(),val,zaman:document.getElementById('k-zaman').value,tarih:document.getElementById('k-tarih').value,saat:document.getElementById('k-saat').value,not:document.getElementById('k-not').value});document.getElementById('k-deger').value='';document.getElementById('k-not').value='';save();closeSheet('sheet-kan');renderAll();kontrol_bildirim(val);}
+function delKanSekeri(id){appData.kanSekeri=appData.kanSekeri.filter(x=>x.id!==id);save();renderAll();}
+function updateTansKategori(){const sis=n(document.getElementById('t-sis').value),dia=n(document.getElementById('t-dia').value);const el=document.getElementById('tans-kategori-goster');if(!sis||!dia){el.style.display='none';return;}const k=tansKat(sis,dia);el.style.display='block';el.style.background=k.cls==='success'?'#E8F5E9':k.cls==='warning'?'#FFF3E0':'#FFEBEE';el.style.color=k.cls==='success'?'#2E7D32':k.cls==='warning'?'#E65100':'#C62828';el.textContent=k.text;}
+function addTansiyon(){const sis=n(document.getElementById('t-sis').value),dia=n(document.getElementById('t-dia').value);if(!sis||!dia){alert('Sistolik ve diastolik değer girin');return;}if(!appData.tansiyon)appData.tansiyon=[];appData.tansiyon.unshift({id:Date.now(),sis,dia,nab:n(document.getElementById('t-nab').value),tarih:document.getElementById('t-tarih').value,saat:document.getElementById('t-saat').value,not:document.getElementById('t-not').value});['t-sis','t-dia','t-nab','t-not'].forEach(id=>document.getElementById(id).value='');document.getElementById('tans-kategori-goster').style.display='none';save();closeSheet('sheet-tans');renderAll();}
+function delTansiyon(id){appData.tansiyon=appData.tansiyon.filter(x=>x.id!==id);save();renderAll();}
+function addHba1c(){const val=n(document.getElementById('h-deger').value);if(!val){alert('HbA1c değeri girin');return;}if(!appData.hba1c)appData.hba1c=[];appData.hba1c.unshift({id:Date.now(),val,tarih:document.getElementById('h-tarih').value,not:document.getElementById('h-not').value});document.getElementById('h-deger').value='';document.getElementById('h-not').value='';save();closeSheet('sheet-hba1c');renderDahaCards();}
+function delHba1c(id){appData.hba1c=appData.hba1c.filter(x=>x.id!==id);save();renderDahaCards();}
+function addIlac(){const ad=document.getElementById('i-ad').value.trim();if(!ad){alert('İlaç adı girin');return;}appData.ilaclar.push({id:Date.now(),ad,doz:document.getElementById('i-doz').value,tur:document.getElementById('i-tur').value,zaman:document.getElementById('i-zaman').value,stok:n(document.getElementById('i-stok').value)||null,stokUyari:n(document.getElementById('i-stok-uyari').value)||7});document.getElementById('i-ad').value='';document.getElementById('i-stok').value='';save();closeSheet('sheet-ilac');renderAll();}
+function delIlac(id){appData.ilaclar=appData.ilaclar.filter(x=>x.id!==id);save();renderAll();}
+function toggleIlacTakip(id){const today=new Date().toISOString().split('T')[0];const key=today+'_'+id;const ilac=appData.ilaclar.find(i=>i.id===id);appData.ilacTakip[key]=!appData.ilacTakip[key];if(appData.ilacTakip[key]&&ilac&&ilac.stok)ilac.stok=Math.max(0,ilac.stok-1);save();renderAll();}
+function addKilo(){const val=n(document.getElementById('ki-deger').value);if(!val){alert('Kilo girin');return;}appData.kilolar.unshift({id:Date.now(),val,tarih:document.getElementById('ki-tarih').value,not:document.getElementById('ki-not').value});document.getElementById('ki-deger').value='';save();closeSheet('sheet-kilo');renderAll();}
+function delKilo(id){appData.kilolar=appData.kilolar.filter(x=>x.id!==id);save();renderAll();}
+function addYemek(){const icerik=document.getElementById('y-icerik').value.trim();if(!icerik){alert('Ne yediğinizi yazın');return;}appData.yemekler.unshift({id:Date.now(),icerik,ogun:document.getElementById('y-ogun').value,tarih:document.getElementById('y-tarih').value,not:document.getElementById('y-not').value,kalori:n(document.getElementById('y-kalori').value)||null});document.getElementById('y-icerik').value='';document.getElementById('y-kalori').value='';save();closeSheet('sheet-yemek');renderAll();}
+function delYemek(id){appData.yemekler=appData.yemekler.filter(x=>x.id!==id);save();renderAll();}
+function renderAll(){renderDashboard();renderKanList();renderIlacList();renderTansList();renderYemekList();renderHomeChart();}
+function renderDashboard(){
+  const last=appData.kanSekeri[0];if(last){const s=getStatus(last.val);const el=document.getElementById('d-son-ks');el.textContent=last.val+' mg/dL';el.className='dval '+s;document.getElementById('d-son-ks-zaman').textContent=last.zaman+' • '+fmt(last.tarih);}
+  const lk=appData.kilolar[0];if(lk)document.getElementById('d-son-kilo').textContent=lk.val;
+  const tans=appData.tansiyon||[];if(tans.length){const lt=tans[0];document.getElementById('d-son-tans').textContent=lt.sis+'/'+lt.dia;const k=tansKat(lt.sis,lt.dia);document.getElementById('d-son-tans-sub').innerHTML=`mmHg <span class="status ${k.cls==='success'?'normal':k.cls==='warning'?'low':'high'}" style="font-size:9px">${k.text}</span>`;}
+  const today=new Date().toISOString().split('T')[0];
+  const total=appData.ilaclar.length,done=appData.ilaclar.filter(i=>appData.ilacTakip[today+'_'+i.id]).length;
+  document.getElementById('d-ilac').textContent=total?done+'/'+total:'-';document.getElementById('d-ilac-sub').textContent=total?'tamamlandı':'tanımlanmadı';
+  const week=appData.kanSekeri.filter(k=>(new Date()-new Date(k.tarih))/86400000<=7);
+  if(week.length){const a=avg(week.map(k=>k.val));const el=document.getElementById('d-hafta-ort');el.textContent=a;el.className='dval '+getStatus(a);}
+  const d90=appData.kanSekeri.filter(k=>(new Date()-new Date(k.tarih))/86400000<=90);
+  if(d90.length>=5)document.getElementById('d-hba1c').textContent=hba1cFromAvg(avg(d90.map(k=>k.val)))+'%';
+  const hil=document.getElementById('home-ilac-list');
+  if(!appData.ilaclar.length)hil.innerHTML='<div class="empty"><p>İlaç eklenmedi</p></div>';
+  else hil.innerHTML=appData.ilaclar.map(i=>{const done=appData.ilacTakip[today+'_'+i.id];return`<div class="med-item"><div class="mico">${i.tur==='İnsülin'?'💉':'💊'}</div><div class="minfo"><div class="mname">${i.ad}</div><div class="mmeta">${i.doz} • ${i.zaman}${i.stok!==null?' • Stok: '+i.stok:''}</div></div><div class="mcheck ${done?'done':''}" onclick="toggleIlacTakip(${i.id})">${done?'✓':''}</div></div>`;}).join('');
+  const hy=document.getElementById('home-yemek-list');const todayY=appData.yemekler.filter(y=>y.tarih===today);const topKal=todayY.reduce((s,y)=>s+(y.kalori||0),0);
+  document.getElementById('home-kalori').textContent=topKal>0?topKal+' kcal':'';
+  if(!todayY.length)hy.innerHTML='<div class="empty"><p>Bugün yemek eklenmedi</p></div>';
+  else hy.innerHTML=todayY.map(y=>`<div class="med-item"><div class="mico">🍽</div><div class="minfo"><div class="mname">${y.ogun}</div><div class="mmeta">${y.icerik}${y.kalori?' • '+y.kalori+' kcal':''}</div></div></div>`).join('');
+  renderTrendAlerts();
+}
+function renderTrendAlerts(){
+  const box=document.getElementById('trend-alerts');const alerts=[];
+  const week=appData.kanSekeri.filter(k=>(new Date()-new Date(k.tarih))/86400000<=7);
+  const prevWeek=appData.kanSekeri.filter(k=>{const d=(new Date()-new Date(k.tarih))/86400000;return d>7&&d<=14;});
+  if(week.length>=3&&prevWeek.length>=3){const a1=avg(week.map(k=>k.val)),a2=avg(prevWeek.map(k=>k.val));const fark=a1-a2;if(fark>20)alerts.push({cls:'danger',ico:'📈',text:'Kan şekeriniz yükseliyor',sub:`Bu hafta ort. ${a1} — geçen hafta ${a2} mg/dL (+${fark})`});else if(fark<-20)alerts.push({cls:'success',ico:'📉',text:'Kan şekeriniz iyileşiyor',sub:`Bu hafta ort. ${a1} — geçen hafta ${a2} mg/dL (${fark})`});}
+  if(week.length>0){const yuksek=week.filter(k=>getStatus(k.val)==='high').length;if(yuksek>=3)alerts.push({cls:'danger',ico:'⚠️',text:'Bu hafta '+yuksek+' yüksek ölçüm',sub:'Diyetinizi ve ilaçlarınızı gözden geçirin'});}
+  const tns=appData.tansiyon||[];if(tns.length){const lt=tns[0];if(lt.sis>=140||lt.dia>=90)alerts.push({cls:'danger',ico:'❤️',text:'Tansiyon yüksek!',sub:lt.sis+'/'+lt.dia+' mmHg — Doktorunuza danışın'});}
+  const stokU=appData.ilaclar.filter(i=>i.stok!==null&&i.stok<=i.stokUyari);stokU.forEach(i=>alerts.push({cls:'warning',ico:'💊',text:i.ad+' stoğu azalıyor',sub:'Kalan: '+i.stok+' adet/ünite'}));
+  box.innerHTML=alerts.map(a=>`<div class="trend-alert ${a.cls}"><div class="ta-ico">${a.ico}</div><div><div class="ta-text">${a.text}</div><div class="ta-sub">${a.sub}</div></div></div>`).join('');
+}
+function renderKanList(){const list=document.getElementById('kan-list');if(!appData.kanSekeri.length){list.innerHTML='<div class="empty"><div class="eico">🩸</div><p>Henüz ölçüm yok</p></div>';return;}list.innerHTML=appData.kanSekeri.slice(0,40).map(k=>{const s=getStatus(k.val);return`<div class="entry-item ${s}"><div class="einfo"><div class="eval" style="color:${s==='high'?'var(--red)':s==='low'?'var(--orange)':'var(--green)'}">${k.val} <small>mg/dL</small></div><div class="emeta">${k.zaman} • ${fmt(k.tarih)} ${k.saat||''} ${k.not?'• '+k.not:''}</div></div><span class="status ${s}">${statusText(s)}</span><button class="edel" onclick="delKanSekeri(${k.id})">✕</button></div>`;}).join('');}
+function renderKanStats(){if(!appData.kanSekeri.length)return;const vals=appData.kanSekeri.map(k=>k.val);const a=avg(vals);const p=appData.profile;const inR=vals.filter(v=>v>=p.min&&v<=p.max).length;document.getElementById('ks-ort').textContent=a+' mg/dL';document.getElementById('ks-min').textContent=Math.min(...vals)+' mg/dL';document.getElementById('ks-max').textContent=Math.max(...vals)+' mg/dL';document.getElementById('ks-hedef').textContent=Math.round(inR/vals.length*100)+'%';const d90=appData.kanSekeri.filter(k=>(new Date()-new Date(k.tarih))/86400000<=90);if(d90.length>=5){const h=hba1cFromAvg(avg(d90.map(k=>k.val)));document.getElementById('ks-hba1c').innerHTML=`<span class="hba1c-badge ${h<7?'hba1c-good':h<8?'hba1c-ok':'hba1c-bad'}">${h}%</span>`;}}
+function renderTansList(){const list=document.getElementById('tans-list');const tans=appData.tansiyon||[];if(!tans.length){list.innerHTML='<div class="empty"><div class="eico">❤️</div><p>Henüz tansiyon ölçümü yok</p></div>';return;}list.innerHTML=tans.slice(0,30).map(t=>{const k=tansKat(t.sis,t.dia);const cls=k.cls==='success'?'normal':k.cls==='warning'?'low':'high';return`<div class="entry-item ${cls}"><div class="einfo"><div class="eval">${t.sis}/${t.dia} <small>mmHg</small></div><div class="emeta">${fmt(t.tarih)} ${t.saat||''}${t.nab?' • Nabız: '+t.nab:''} ${t.not?'• '+t.not:''}</div></div><span class="status ${cls}">${k.text.split(' ')[0]}</span><button class="edel" onclick="delTansiyon(${t.id})">✕</button></div>`;}).join('');}
+function renderTansStats(){const tans=appData.tansiyon||[];if(!tans.length)return;const s=avg(tans.map(t=>t.sis)),d=avg(tans.map(t=>t.dia));const nabs=tans.filter(t=>t.nab);document.getElementById('tns-sis-ort').textContent=s+' mmHg';document.getElementById('tns-dia-ort').textContent=d+' mmHg';document.getElementById('tns-nab-ort').textContent=nabs.length?avg(nabs.map(t=>t.nab))+' /dk':'-';const k=tansKat(s,d);document.getElementById('tns-durum').innerHTML=`<span class="status ${k.cls==='success'?'normal':k.cls==='warning'?'low':'high'}">${k.text}</span>`;}
+function renderIlacList(){const today=new Date().toISOString().split('T')[0];const bugun=document.getElementById('ilac-bugun-list'),tum=document.getElementById('ilac-tum-list');const stokEl=document.getElementById('stok-uyari-list');const stokU=appData.ilaclar.filter(i=>i.stok!==null&&i.stok<=i.stokUyari);stokEl.innerHTML=stokU.map(i=>`<div class="trend-alert warning"><div class="ta-ico">💊</div><div><div class="ta-text">${i.ad} stoğu azalıyor</div><div class="ta-sub">Kalan: <span class="stok-low">${i.stok}</span></div></div></div>`).join('');if(!appData.ilaclar.length){bugun.innerHTML='<div class="empty"><p>İlaç eklenmedi</p></div>';tum.innerHTML='';return;}bugun.innerHTML=appData.ilaclar.map(i=>{const done=appData.ilacTakip[today+'_'+i.id];return`<div class="med-item"><div class="mico">${i.tur==='İnsülin'?'💉':'💊'}</div><div class="minfo"><div class="mname">${i.ad}</div><div class="mmeta">${i.doz} • ${i.zaman}${i.stok!==null?' • Stok: <b>'+i.stok+'</b>':''}</div></div><div class="mcheck ${done?'done':''}" onclick="toggleIlacTakip(${i.id})">${done?'✓':''}</div></div>`;}).join('');tum.innerHTML=appData.ilaclar.map(i=>`<div class="med-item"><div class="mico">${i.tur==='İnsülin'?'💉':'💊'}</div><div class="minfo"><div class="mname">${i.ad}</div><div class="mmeta">${i.doz} • ${i.tur} • ${i.zaman}</div></div><button class="btn btn-danger btn-sm" onclick="delIlac(${i.id})">Sil</button></div>`).join('');}
+function renderYemekList(){const list=document.getElementById('yemek-list');if(!appData.yemekler.length){list.innerHTML='<div class="empty"><div class="eico">🍽</div><p>Henüz yemek eklenmedi</p></div>';return;}const today=new Date().toISOString().split('T')[0];const todayKal=appData.yemekler.filter(y=>y.tarih===today).reduce((s,y)=>s+(y.kalori||0),0);const kc=document.getElementById('kalori-ozet-card');if(todayKal>0){kc.style.display='';document.getElementById('bugun-kalori-val').textContent=todayKal;}else kc.style.display='none';const grouped={};appData.yemekler.slice(0,60).forEach(y=>{if(!grouped[y.tarih])grouped[y.tarih]=[];grouped[y.tarih].push(y);});list.innerHTML=Object.entries(grouped).map(([tarih,items])=>{const kal=items.reduce((s,y)=>s+(y.kalori||0),0);return`<div class="card"><div class="card-title">${fmt(tarih)}${kal>0?`<span style="margin-left:auto;font-size:12px;color:var(--orange);font-weight:600">${kal} kcal</span>`:''}</div>${items.map(y=>`<div class="med-item"><div class="mico">🍽</div><div class="minfo"><div class="mname">${y.ogun}</div><div class="mmeta">${y.icerik}${y.kalori?' • '+y.kalori+' kcal':''}${y.not?' • '+y.not:''}</div></div><button class="edel" onclick="delYemek(${y.id})">✕</button></div>`).join('')}</div>`;}).join('');}
+let homeCI=null,kanCI=null,tansCI=null,insCI=null,kiloCI=null;
+function renderHomeChart(){const ctx=document.getElementById('homeChart');if(!ctx)return;const last7=[...appData.kanSekeri].filter(k=>(new Date()-new Date(k.tarih))/86400000<=7).reverse().slice(-20);const p=appData.profile||{min:70,max:180};if(homeCI)homeCI.destroy();if(!last7.length)return;homeCI=new Chart(ctx,{type:'line',data:{labels:last7.map(k=>fmt(k.tarih)+' '+k.saat),datasets:[{label:'Kan Şekeri',data:last7.map(k=>k.val),borderColor:'#1976D2',backgroundColor:'rgba(25,118,210,0.08)',tension:0.3,pointBackgroundColor:last7.map(k=>k.val<p.min?'#FB8C00':k.val>p.max?'#E53935':'#43A047'),pointRadius:5,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{suggestedMin:50,suggestedMax:250}}}});}
+function renderKanChart(){const ctx=document.getElementById('kanChart');if(!ctx)return;const last=[...appData.kanSekeri].filter(k=>(new Date()-new Date(k.tarih))/86400000<=14).reverse().slice(-30);if(kanCI)kanCI.destroy();if(!last.length)return;kanCI=new Chart(ctx,{type:'line',data:{labels:last.map(k=>fmt(k.tarih)),datasets:[{label:'mg/dL',data:last.map(k=>k.val),borderColor:'#1976D2',backgroundColor:'rgba(25,118,210,0.08)',tension:0.3,pointBackgroundColor:last.map(k=>getStatus(k.val)==='high'?'#E53935':getStatus(k.val)==='low'?'#FB8C00':'#43A047'),pointRadius:5,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{suggestedMin:50,suggestedMax:250}}}});}
+function renderTansChart(){const ctx=document.getElementById('tansChart');if(!ctx)return;const tans=appData.tansiyon||[];const last=[...tans].filter(k=>(new Date()-new Date(k.tarih))/86400000<=14).reverse().slice(-30);if(tansCI)tansCI.destroy();if(!last.length)return;tansCI=new Chart(ctx,{type:'line',data:{labels:last.map(t=>fmt(t.tarih)),datasets:[{label:'Sistolik',data:last.map(t=>t.sis),borderColor:'#1976D2',backgroundColor:'rgba(25,118,210,0.05)',tension:0.3,pointRadius:4,fill:false},{label:'Diastolik',data:last.map(t=>t.dia),borderColor:'#00897B',backgroundColor:'rgba(0,137,123,0.05)',tension:0.3,pointRadius:4,fill:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'}},scales:{y:{suggestedMin:50,suggestedMax:180}}}});}
+function renderInsChart(){const ctx=document.getElementById('insulinChart');if(!ctx)return;const ins=appData.ilaclar.filter(i=>i.tur==='İnsülin');if(insCI)insCI.destroy();if(!ins.length){const p=ctx.parentElement;p.innerHTML='<div class="empty"><p>İnsülin tanımlanmadı</p></div>';return;}const days=[];for(let i=13;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days.push(d.toISOString().split('T')[0]);}insCI=new Chart(ctx,{type:'bar',data:{labels:days.map(d=>fmt(d)),datasets:ins.map((il,idx)=>({label:il.ad,data:days.map(d=>appData.ilacTakip[d+'_'+il.id]?1:0),backgroundColor:['#1976D2','#43A047','#E53935','#FB8C00'][idx%4]+'99',borderRadius:4}))},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'}},scales:{y:{max:1,ticks:{display:false}}}}});}
+function renderDahaCards(){const kilo=appData.kilolar[0];document.getElementById('mc-kilo-sub').textContent=kilo?kilo.val+' kg':'Veri yok';const hba=appData.hba1c||[];document.getElementById('mc-hba1c-sub').textContent=hba.length?'Son: '+hba[0].val+'%':'Veri yok';}
+function showSubPage(which){const el=document.getElementById('subpage-content');
+if(which==='kilo'){let html=`<div class="sec-header"><div class="sec-title">⚖️ Kilo Takibi</div><button class="btn btn-primary btn-sm" onclick="openSheet('sheet-kilo')">+ Ekle</button></div>`;if(appData.kilolar.length){const vals=appData.kilolar.map(k=>k.val);const fark=Math.round((vals[0]-vals[vals.length-1])*10)/10;html+=`<div class="card"><div class="card-title">İstatistikler</div><div class="report-row"><span class="report-label">Başlangıç</span><span class="report-val">${vals[vals.length-1]} kg</span></div><div class="report-row"><span class="report-label">Şimdiki</span><span class="report-val">${vals[0]} kg</span></div><div class="report-row"><span class="report-label">Fark</span><span class="report-val" style="color:${fark<0?'var(--green)':fark>0?'var(--red)':'var(--gray)'}">${fark>0?'+':''}${fark} kg</span></div></div><div class="card"><div class="card-title">Grafik</div><div class="chart-wrap"><canvas id="kiloChartSub"></canvas></div></div><div class="entry-list">${appData.kilolar.slice(0,20).map(k=>`<div class="entry-item normal"><div class="einfo"><div class="eval">${k.val} <small>kg</small></div><div class="emeta">${fmt(k.tarih)} ${k.not?'• '+k.not:''}</div></div><button class="edel" onclick="delKilo(${k.id})">✕</button></div>`).join('')}</div>`;}else html+=`<div class="empty"><div class="eico">⚖️</div><p>Henüz kilo eklenmedi</p></div>`;el.innerHTML=html;if(appData.kilolar.length){const ctx=document.getElementById('kiloChartSub');if(ctx){const data=[...appData.kilolar].reverse();if(kiloCI)kiloCI.destroy();kiloCI=new Chart(ctx,{type:'line',data:{labels:data.map(k=>fmt(k.tarih)),datasets:[{label:'kg',data:data.map(k=>k.val),borderColor:'#43A047',backgroundColor:'rgba(67,160,71,0.08)',tension:0.3,pointRadius:5,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}});}}}
+else if(which==='hba1c'){const hba=appData.hba1c||[];let html=`<div class="sec-header"><div class="sec-title">🧪 HbA1c</div><button class="btn btn-primary btn-sm" onclick="openSheet('sheet-hba1c')">+ Ekle</button></div>`;const d90=appData.kanSekeri.filter(k=>(new Date()-new Date(k.tarih))/86400000<=90);if(d90.length>=5){const h=hba1cFromAvg(avg(d90.map(k=>k.val)));html+=`<div class="card"><div class="card-title">Tahmini HbA1c (otomatik hesaplanan)</div><div style="text-align:center;padding:12px"><span class="hba1c-badge ${h<7?'hba1c-good':h<8?'hba1c-ok':'hba1c-bad'}" style="font-size:28px">${h}%</span><div style="font-size:12px;color:var(--gray);margin-top:8px">&lt;7% İyi kontrol | 7-8% Orta | &gt;8% Kötü kontrol</div></div></div>`;}if(hba.length)html+=`<div class="card"><div class="card-title">Laboratuvar Sonuçları</div>${hba.map(h=>`<div class="report-row"><span class="report-label">${fmt(h.tarih)}</span><span class="report-val"><span class="hba1c-badge ${h.val<7?'hba1c-good':h.val<8?'hba1c-ok':'hba1c-bad'}">${h.val}%</span> ${h.not?'<small style="color:var(--gray)">'+h.not+'</small>':''}</span><button class="edel" onclick="delHba1c(${h.id})">✕</button></div>`).join('')}</div>`;else html+=`<div class="empty"><div class="eico">🧪</div><p>Laboratuvar sonuçlarınızı ekleyin</p></div>`;el.innerHTML=html;}
+else if(which==='oneri'){el.innerHTML=`<div class="card"><div class="card-title">🥗 Beslenme</div><div class="tip-item"><div class="tipp">✅</div><div class="tiptext"><div class="tiptitle">Lifli gıdaları tercih edin</div>Tam tahıllı ekmek, bulgur, yulaf kan şekerini dengeler.</div></div><div class="tip-item"><div class="tipp">✅</div><div class="tiptext"><div class="tiptitle">Öğünleri düzenli yapın</div>3 ana öğün, 2-3 ara öğün ile kan şekerini dengede tutun.</div></div><div class="tip-item"><div class="tipp">❌</div><div class="tiptext"><div class="tiptitle">Şekerli içeceklerden kaçının</div>Gazlı içecekler, hazır meyve suları kan şekerini hızla yükseltir.</div></div></div><div class="card"><div class="card-title">🏃 Egzersiz</div><div class="tip-item"><div class="tipp">🚶</div><div class="tiptext"><div class="tiptitle">Günde 30 dk yürüyüş</div>Yemekten 1-2 saat sonra yapılan yürüyüş kan şekerini düşürür.</div></div><div class="tip-item"><div class="tipp">⚠️</div><div class="tiptext"><div class="tiptitle">Egzersiz öncesi ölçüm yapın</div>70 mg/dL altında ise önce bir şeyler yiyin.</div></div></div><div class="card"><div class="card-title">⚠️ Acil Durumlar</div><div class="tip-item"><div class="tipp">🔴</div><div class="tiptext"><div class="tiptitle">70 mg/dL altı — Hipoglisemi</div>Titreme, terleme varsa hemen 3-4 şeker veya 1 bardak meyve suyu alın.</div></div><div class="tip-item"><div class="tipp">🔴</div><div class="tiptext"><div class="tiptitle">300 mg/dL üzeri — Acil</div>Susuzluk, çok idrara çıkma varsa derhal doktora gidin.</div></div></div>`;}
+else if(which==='ayarlar'){const p=appData.profile||{};el.innerHTML=`<div class="card"><div class="card-title">⚙️ Profil Ayarları</div><div class="ff"><label>Hedef Min (mg/dL)</label><input type="number" id="ay-min" value="${p.min||70}"></div><div class="ff"><label>Hedef Max (mg/dL)</label><input type="number" id="ay-max" value="${p.max||180}"></div><div class="ff"><label>Doktor Adı</label><input type="text" id="ay-doktor" value="${p.doktor||''}"></div><button class="btn btn-primary" style="width:100%" onclick="kaydetAyarlar()">Kaydet</button></div><div class="card"><div class="card-title">🔔 Bildirimler</div><div class="toggle-wrap"><span style="font-size:14px;font-weight:600">İlaç & Değer Uyarıları</span><div class="toggle ${localStorage.getItem('notif_on')==='1'?'on':''}" onclick="toggleNotif()"></div></div><div style="font-size:12px;color:var(--gray);margin-top:4px">Düşük/yüksek kan şekerinde bildirim alın</div></div><div class="card"><div class="card-title">🗑 Veri Yönetimi</div><button class="btn btn-danger" style="width:100%" onclick="if(confirm('Tüm veriler silinecek!')){localStorage.clear();location.reload()}">Tüm Verileri Sil</button></div>`;}
+}
+function kaydetAyarlar(){if(!appData.profile)return;appData.profile.min=parseInt(document.getElementById('ay-min').value)||70;appData.profile.max=parseInt(document.getElementById('ay-max').value)||180;appData.profile.doktor=document.getElementById('ay-doktor').value.trim();save();alert('Kaydedildi ✓');renderAll();}
+function istek_bildirim_izni(){if('Notification' in window&&localStorage.getItem('notif_on')==='1')Notification.requestPermission();}
+function toggleNotif(){const on=localStorage.getItem('notif_on')==='1';localStorage.setItem('notif_on',on?'0':'1');if(!on&&'Notification' in window)Notification.requestPermission();updateNotifBtn();}
+function updateNotifBtn(){const on=localStorage.getItem('notif_on')==='1';const btn=document.getElementById('notif-btn');if(btn)btn.style.background=on?'rgba(67,160,71,0.4)':'rgba(255,255,255,0.15)';}
+function kontrol_bildirim(val){if(localStorage.getItem('notif_on')!=='1'||!('Notification' in window)||Notification.permission!=='granted')return;const p=appData.profile||{min:70,max:180};if(val<p.min)new Notification('⚠️ Düşük Kan Şekeri!',{body:'Değeriniz: '+val+' mg/dL — hemen şeker alın',icon:'icon.svg'});else if(val>p.max)new Notification('⚠️ Yüksek Kan Şekeri!',{body:'Değeriniz: '+val+' mg/dL — dikkat edin',icon:'icon.svg'});}
+function renderRapor(){const p=appData.profile;if(!p)return;const tipMap={tip1:'Tip 1',tip2:'Tip 2',gestasyonel:'Gestasyonel',prediabet:'Prediabet'};document.getElementById('r-adsoyad').textContent=p.ad+' '+p.soyad;document.getElementById('r-dogum').textContent=p.dogum||'-';document.getElementById('r-tip').textContent=tipMap[p.tip]||p.tip;document.getElementById('r-doktor').textContent=p.doktor||'-';document.getElementById('r-tarih').textContent=new Date().toLocaleDateString('tr-TR');const last30=appData.kanSekeri.filter(k=>(new Date()-new Date(k.tarih))/86400000<=30);if(last30.length){const vals=last30.map(k=>k.val);const a=avg(vals);const inR=vals.filter(v=>v>=p.min&&v<=p.max).length;const h=hba1cFromAvg(a);document.getElementById('r-ort').textContent=a+' mg/dL';document.getElementById('r-min').textContent=Math.min(...vals)+' mg/dL';document.getElementById('r-max').textContent=Math.max(...vals)+' mg/dL';document.getElementById('r-hedef').textContent=Math.round(inR/vals.length*100)+'%';document.getElementById('r-olcum').textContent=vals.length;document.getElementById('r-hba1c').innerHTML=`<span class="hba1c-badge ${h<7?'hba1c-good':h<8?'hba1c-ok':'hba1c-bad'}">${h}%</span>`;}const tns=(appData.tansiyon||[]).filter(t=>(new Date()-new Date(t.tarih))/86400000<=30);if(tns.length){const nbs=tns.filter(t=>t.nab);document.getElementById('r-tns-sis').textContent=avg(tns.map(t=>t.sis))+' mmHg';document.getElementById('r-tns-dia').textContent=avg(tns.map(t=>t.dia))+' mmHg';document.getElementById('r-tns-nab').textContent=nbs.length?avg(nbs.map(t=>t.nab))+' /dk':'-';}const lk=appData.kilolar[0];if(lk){document.getElementById('r-kilo').textContent=lk.val+' kg';if(appData.kilolar.length>1){const fark=Math.round((lk.val-appData.kilolar[appData.kilolar.length-1].val)*10)/10;document.getElementById('r-kilo-degisim').textContent=(fark>0?'+':'')+fark+' kg';}}const ril=document.getElementById('r-ilac-list');ril.innerHTML=appData.ilaclar.length?appData.ilaclar.map(i=>`<div class="report-row"><span class="report-label">${i.ad}</span><span class="report-val">${i.doz} • ${i.zaman}</span></div>`).join(''):'<div style="font-size:13px;color:var(--gray)">İlaç tanımlanmadı</div>';const hba=appData.hba1c||[];if(hba.length){document.getElementById('r-hba1c-list-section').style.display='';document.getElementById('r-hba1c-list').innerHTML=hba.map(h=>`<div class="report-row"><span class="report-label">${fmt(h.tarih)}</span><span class="report-val">${h.val}% ${h.not?'('+h.not+')':''}</span></div>`).join('');}}
+function raporuKopyala(){const p=appData.profile;if(!p)return;const last30=appData.kanSekeri.filter(k=>(new Date()-new Date(k.tarih))/86400000<=30);let text=`DİYABET TAKİP RAPORU\n${new Date().toLocaleDateString('tr-TR')}\n\nHasta: ${p.ad} ${p.soyad}\nTip: ${p.tip}\nDoktor: ${p.doktor||'-'}\n\n`;if(last30.length){const vals=last30.map(k=>k.val);const a=avg(vals);text+=`KAN ŞEKERİ (Son 30 gün)\nOrt: ${a} mg/dL | Min: ${Math.min(...vals)} | Max: ${Math.max(...vals)}\nTahmini HbA1c: ${hba1cFromAvg(a)}%\n\n`;}text+=`İLAÇLAR\n${appData.ilaclar.map(i=>`• ${i.ad} ${i.doz} - ${i.zaman}`).join('\n')||'-'}\n`;navigator.clipboard.writeText(text).then(()=>alert('Rapor panoya kopyalandı ✓')).catch(()=>alert('Kopyalanamadı'));}
+if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>

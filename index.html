@@ -938,6 +938,8 @@ const RECETE_ANAHTAR=[
 {a:'CHEDDAR CHICKEN',k:'TAVUK',m:'Tavuk Burger (120gr)',n:120,b:'gr'},
 {a:'MINI TAVUK',k:'TAVUK',m:'Mini Tavuk (65gr)',n:65,b:'gr'},
 {a:'CITIR TAVUK',k:'TAVUK',m:'Çıtır Tavuk (160gr)',n:160,b:'gr'},
+{a:'CITIR TAVUK TABAGI',k:'TAVUK',m:'Çıtır Tavuk (160gr)',n:160,b:'gr'},
+{a:'TAVUK TABAGI',k:'TAVUK',m:'Çıtır Tavuk (160gr)',n:160,b:'gr'},
 {a:'TAVUK PARCASI',k:'TAVUK_ADET',m:'Tavuk Parçası',n:6,b:'adet'},
 {a:'RED ZONE',k:'TAVUK',m:'Tavuk Burger (120gr)',n:120,b:'gr'},
 {a:'RED ZONE',k:'SOS',m:'Red Zone Sos',n:30,b:'gr'},
@@ -959,9 +961,15 @@ const RECETE_ANAHTAR=[
 {a:'EKSTRA PASTIRMA',k:'EKSTRA',m:'Pastırma',n:20,b:'gr'},
 {a:'EKSTRA KARAMELIZE',k:'EKSTRA',m:'Karamelize Soğan',n:30,b:'gr'},
 {a:'SOGAN HALKA',k:'APERATIF',m:'Soğan Halkası',n:14,b:'gr'},
+{a:'SOĞAN HALKA',k:'APERATIF',m:'Soğan Halkası',n:14,b:'gr'},
+{a:'12 LI SOGAN',k:'APERATIF',m:'Soğan Halkası',n:14,b:'gr'},
+{a:'8 LI SOGAN',k:'APERATIF',m:'Soğan Halkası',n:14,b:'gr'},
+{a:'6 LI SOGAN',k:'APERATIF',m:'Soğan Halkası',n:14,b:'gr'},
+{a:'4 LU SOGAN',k:'APERATIF',m:'Soğan Halkası',n:14,b:'gr'},
 {a:'STICK PEYNIR',k:'APERATIF',m:'Stick Peynir',n:1,b:'adet'},
 {a:'NUGGET',k:'APERATIF',m:'Nugget',n:1,b:'adet'},
 {a:'DOUBLE PATATES',k:'APERATIF',m:'Patates',n:260,b:'gr'},
+{a:'PATATES KIZARTMASI',k:'APERATIF',m:'Patates',n:130,b:'gr'},
 {a:'MIX ATISTIRMALIK',k:'MIX',m:'Soğan Halkası',n:28,b:'gr'},
 {a:'MIX ATISTIRMALIK',k:'MIX',m:'Stick Peynir',n:44,b:'gr'},
 {a:'MIX ATISTIRMALIK',k:'MIX',m:'Nugget',n:40,b:'gr'},
@@ -1023,10 +1031,13 @@ malzemeler.push({ad:kw.m,miktar:kw.n*adet*etKatsayi,birim:kw.b,kategori:kw.k,bas
 malzemeler.push({ad:kw.m,miktar:kw.n*adet,birim:kw.b,kategori:kw.k,baseGram:kw.n});
 }
 });
-const burgerDegil=/^(MIX|PATATES|SOGAN|STICK|NUGGET|CITIR TAVUK TABAGI|GOLDEN BURGER$)/.test(norm)||/^(SU|AYRAN|SODA|LIMONATA|GAZO|ULUDAG)$/.test(norm)||/(SISE|ŞISE|KUTU|FUSE TEA|CAPPY|SPRITE|COCA|FANTA|1LT|LITRE)(?!\s*BURGER)/.test(norm);
+const burgerDegil=/^(MIX|PATATES|SOGAN|STICK|NUGGET|GOLDEN BURGER$)/.test(norm)||/^(SU|AYRAN|SODA|LIMONATA|GAZO|ULUDAG)$/.test(norm)||/(SISE|ŞISE|KUTU|FUSE TEA|CAPPY|SPRITE|COCA|FANTA|1LT|LITRE)(?!\s*BURGER)/.test(norm);
 if(malzemeler.length>0&&!burgerDegil){
 const ekBc=ikili?2:uclu?3:1;
 malzemeler.push({ad:'Ekmek',miktar:ekBc*adet,birim:'adet',kategori:'EKMEK',baseGram:1});
+}
+if(/CITIR TAVUK TABAGI|TAVUK TABAGI/.test(norm)){
+malzemeler.push({ad:'Patates',miktar:130*adet,birim:'gr',kategori:'PATATES',baseGram:130});
 }
 if(menuInfo.pat>0)malzemeler.push({ad:'Patates',miktar:130*menuInfo.pat*adet,birim:'gr',kategori:'PATATES',baseGram:130});
 if(menuInfo.kutu>0)malzemeler.push({ad:'Kutu İçecek',miktar:menuInfo.kutu*adet,birim:'adet',kategori:'İÇECEK',baseGram:1});

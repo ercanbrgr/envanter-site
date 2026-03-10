@@ -1077,13 +1077,13 @@ console.log(`✅ ${ad} → ${malzemeler.length} malzeme`);
 }
 malzemeler.forEach(m=>{
 const key=m.ad;
-if(!malzemeMap[key])malzemeMap[key]={total:0,count:0,grams:[],birim:m.birim,kategori:m.kategori,baseGram:0};
+if(!malzemeMap[key]){
+const grMatch=m.ad.match(/\((\d+)gr\)/);
+const baseGram=grMatch?parseInt(grMatch[1]):0;
+malzemeMap[key]={total:0,count:0,birim:m.birim,kategori:m.kategori,baseGram};
+}
 const addVal=m.birim==='gr'?m.miktar:m.miktar;
 malzemeMap[key].total+=addVal;
-if(m.birim==='gr'){
-const grMatch=m.ad.match(/\((\d+)gr\)/);
-if(grMatch)malzemeMap[key].baseGram=parseInt(grMatch[1]);
-}
 });
 });
 for(const[malzeme,data]of Object.entries(malzemeMap)){

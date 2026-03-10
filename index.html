@@ -1033,7 +1033,7 @@ malzemeler.push({ad:kw.m,miktar:kw.n*adet,birim:kw.b,kategori:kw.k,baseGram:kw.n
 });
 const burgerDegil=/^(MIX|PATATES|SOGAN|STICK|NUGGET|GOLDEN BURGER$)/.test(norm)||/^(SU|AYRAN|SODA|LIMONATA|GAZO|ULUDAG)$/.test(norm)||/(SISE|ŞISE|KUTU|FUSE TEA|CAPPY|SPRITE|COCA|FANTA|1LT|LITRE)(?!\s*BURGER)/.test(norm);
 if(malzemeler.length>0&&!burgerDegil){
-const ekBc=isDouble?2:ikili?2:uclu?3:1;
+const ekBc=ikili?2:uclu?3:1;
 malzemeler.push({ad:'Ekmek',miktar:ekBc*adet,birim:'adet',kategori:'EKMEK',baseGram:1});
 }
 if(menuInfo.pat>0)malzemeler.push({ad:'Patates',miktar:130*menuInfo.pat*adet,birim:'gr',kategori:'PATATES',baseGram:130});

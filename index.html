@@ -973,6 +973,22 @@ const RECETE_ANAHTAR=[
 {a:'SISE',k:'ICECEK',m:'Kutu İçecek',n:1,b:'adet'},
 {a:'ŞISE',k:'ICECEK',m:'Kutu İçecek',n:1,b:'adet'},
 {a:'KUTU',k:'ICECEK',m:'Kutu İçecek',n:1,b:'adet'},
+{a:'FUSE TEA',k:'ICECEK',m:'Kutu İçecek',n:1,b:'adet'},
+{a:'CAPPY',k:'ICECEK',m:'Kutu İçecek',n:1,b:'adet'},
+{a:'SPRITE',k:'ICECEK',m:'Kutu İçecek',n:1,b:'adet'},
+{a:'COCA COLA',k:'ICECEK',m:'Kutu İçecek',n:1,b:'adet'},
+{a:'COCA ZERO',k:'ICECEK',m:'Kutu İçecek',n:1,b:'adet'},
+{a:'FANTA',k:'ICECEK',m:'Kutu İçecek',n:1,b:'adet'},
+{a:'AYRAN',k:'ICECEK',m:'Ayran',n:1,b:'adet'},
+{a:'SU',k:'ICECEK',m:'Su',n:1,b:'adet'},
+{a:'SODA',k:'ICECEK',m:'Soda',n:1,b:'adet'},
+{a:'MEYVELI SODA',k:'ICECEK',m:'Meyveli Soda',n:1,b:'adet'},
+{a:'LIMONATA',k:'ICECEK',m:'Limonata',n:1,b:'adet'},
+{a:'ULUDAG',k:'ICECEK',m:'Gazoz',n:1,b:'adet'},
+{a:'GAZO',k:'ICECEK',m:'Gazoz',n:1,b:'adet'},
+{a:'1LT',k:'ICECEK',m:'1 Litre İçecek',n:1,b:'adet'},
+{a:'1 LT',k:'ICECEK',m:'1 Litre İçecek',n:1,b:'adet'},
+{a:'LITRE',k:'ICECEK',m:'1 Litre İçecek',n:1,b:'adet'},
 {a:'RAMAZAN JOKE',k:'ET',m:'Joker Et (85gr)',n:85,b:'gr'},
 {a:'RAMAZAN ETLI',k:'ET',m:'Joker Et (85gr)',n:85,b:'gr'},
 {a:'RAMAZAN CORBALI',k:'TAVUK',m:'Tenders (160gr)',n:160,b:'gr'},
@@ -982,10 +998,6 @@ const RECETE_ANAHTAR=[
 function urundenMalzemeBul(urunAdi,adet,menuInfo){
 const norm=urunAdi.toUpperCase().trim();
 const malzemeler=[];
-if(/^SU$/.test(norm)){
-malzemeler.push({ad:'Su',miktar:adet,birim:'adet',kategori:'İÇECEK'});
-return malzemeler;
-}
 const isDouble=/DOUBLE/.test(norm)&&!/2 ?LI/.test(norm);
 const ikili=/IKILI|2 ?LI/.test(norm);
 const uclu=/UCLU|3 ?LU|3 ?LÜ/.test(norm);
@@ -1011,7 +1023,7 @@ malzemeler.push({ad:kw.m,miktar:kw.n*adet*etKatsayi,birim:kw.b,kategori:kw.k});
 malzemeler.push({ad:kw.m,miktar:kw.n*adet,birim:kw.b,kategori:kw.k});
 }
 });
-if(malzemeler.length>0&&!/GOLDEN|MIX|SISE|ŞISE|KUTU|^SU$|PATATES KIZART/.test(norm)){
+if(malzemeler.length>0&&!/GOLDEN|MIX|SISE|ŞISE|KUTU|SU|SODA|AYRAN|LIMONATA|GAZO|ULUDAG|PATATES KIZART|FUSE TEA|CAPPY|SPRITE|COCA|FANTA/.test(norm)){
 const ekBc=ikili?2:uclu?3:1;
 malzemeler.push({ad:'Ekmek',miktar:ekBc*adet,birim:'adet',kategori:'EKMEK'});
 }

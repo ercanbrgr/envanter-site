@@ -1031,8 +1031,8 @@ malzemeler.push({ad:kw.m,miktar:kw.n*adet*etKatsayi,birim:kw.b,kategori:kw.k,bas
 malzemeler.push({ad:kw.m,miktar:kw.n*adet,birim:kw.b,kategori:kw.k,baseGram:kw.n});
 }
 });
-const burgerDegil=/^(MIX|PATATES|SOGAN|STICK|NUGGET|GOLDEN BURGER$)/.test(norm)||/^(SU|AYRAN|SODA|LIMONATA|GAZO|ULUDAG)$/.test(norm)||/(SISE|ŞISE|KUTU|FUSE TEA|CAPPY|SPRITE|COCA|FANTA|1LT|LITRE)(?!\s*BURGER)/.test(norm);
-if(malzemeler.length>0&&!burgerDegil){
+const burgerVarMi=malzemeler.some(m=>m.kategori==='ET'||m.kategori==='TAVUK')||/GOLDEN/.test(norm);
+if(burgerVarMi){
 const ekBc=ikili?2:uclu?3:1;
 malzemeler.push({ad:'Ekmek',miktar:ekBc*adet,birim:'adet',kategori:'EKMEK',baseGram:1});
 }

@@ -1,0 +1,33 @@
+MEVCUT REÇETE LİSTESİ - İNCELE VE DÜZELTECEKLERİ İŞARETLE
+================================================================
+
+Nasıl işaretlersin:
+❌ Ürün Adı | Malzeme | Miktar | Birim ← Yanlış olanları böyle işaretle
+✏️ DOĞRUSU: Malzeme | Miktar | Birim ← Altına doğrusunu yaz
+
+================================================================
+BU DOSYAYI DOLDURMAK İÇİN:
+================================================================
+
+1. Supabase'de şu SQL'i çalıştır:
+   https://supabase.com/dashboard/project/gqhfxpczgxksbfybfesz/sql/new
+
+SELECT 
+  urun_adi,
+  malzeme_adi, 
+  miktar,
+  birim
+FROM urun_recete 
+WHERE aktif = true
+ORDER BY urun_adi, malzeme_adi;
+
+2. Sonuçları kopyala
+3. Buraya yapıştır
+4. Hatalıları işaretle
+5. "tamam" yaz, düzelteyim
+
+================================================================
+BURAYA YAPIŞTIR:
+================================================================
+
+

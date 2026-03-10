@@ -1,0 +1,73 @@
+Anahtar Kelime,Kategori,Malzeme Adı,Miktar,Birim,Notlar
+# ET KATEGORİSİ,,,,,,
+JOKER,ET,Joker Et (85gr),85,gr,Joker Classic / Joker Cheese / Joker Smoky vb.
+SUPER,ET,Super Et (120gr),120,gr,Super Classic / Super Cheese / Super Smoky vb.
+SUPPER,ET,Super Et (120gr),120,gr,Alternatif yazım (Super = Supper)
+TASTY,ET,Tasty Et (150gr),150,gr,Tasty Classic / Tasty Cheese / Tasty Smoky vb.
+SPECIAL,ET,Special Et (150gr),150,gr,Big Special Peynir
+MINI ET,ET,Mini Et (50gr),50,gr,Junior Et Burger
+,,,,,,
+# TAVUK KATEGORİSİ,,,,,,
+CHICKEN BURGER,TAVUK,Tavuk Burger (120gr),120,gr,Tavuk burger (ranch soslu)
+CHICKEN TENDERS,TAVUK,Tenders (160gr),160,gr,Tenders burger
+TENDERS,TAVUK,Tenders (160gr),160,gr,Alternatif eşleşme
+CHEDDAR CHICKEN,TAVUK,Tavuk Burger (120gr),120,gr,Cheddar chicken = tavuk 120gr
+MINI TAVUK,TAVUK,Mini Tavuk (65gr),65,gr,Junior Tavuk Burger
+CITIR TAVUK,TAVUK,Çıtır Tavuk (160gr),160,gr,Çıtır Tavuk Tabağı
+TAVUK PARCASI,TAVUK_ADET,Tavuk Parçası,6,adet,Çıtır Tavuk Tabağı - 6 parça
+RED ZONE,TAVUK,Tavuk Burger (120gr),120,gr,Red Zone Menü
+,,,,,,
+# MENÜ EKSTRAları,,,,,,
+MENU,MENU_EXTRA,Patates,130,gr,Tüm menülerde patates var
+MENU,MENU_EXTRA,Kutu İçecek,1,adet,Tekli menülerde kutu içecek
+IKILI,MENU_EXTRA,Patates,260,gr,İkili menülerde 2 porsiyon patates (2x130)
+2 LI,MENU_EXTRA,Patates,260,gr,Alternatif yazım
+UCLU,MENU_EXTRA,Patates,390,gr,Üçlü menülerde 3 porsiyon patates (3x130)
+3 LU,MENU_EXTRA,Patates,390,gr,Alternatif yazım
+3 LÜ,MENU_EXTRA,Patates,390,gr,Türkçe I/İ farkı
+UCLU,MENU_EXTRA,1 Litre İçecek,1,adet,Üçlü menülerde 1L içecek
+3 LU,MENU_EXTRA,1 Litre İçecek,1,adet,Alternatif yazım
+,,,,,,
+# SOSLAR,,,,,,
+BURGER,SOS,Burger Sos,30,gr,Klasik burgerlerde (joker/super/tasty - MUSHROOM hariç)
+RANCH,SOS,Ranch Sos,30,gr,Tavuk burgerlerde
+RED ZONE,SOS,Red Zone Sos,30,gr,Red Zone Menü özel sos
+ACI,SOS,Acı Sos,40,gr,Alev Alev burgerlerde
+ALEV,SOS,Acı Sos,40,gr,Alternatif kelime
+MUSHROOM,SOS,Trüflü Mayonez,20,gr,Mushroom burgerlerde (Burger Sos yerine)
+BBQ,SOS,BBQ Sos,15,gr,Smoky burgerlerde (ek)
+,,,,,,
+# PEYNİR & EKSTRALAR,,,,,,
+CHEESE,PEYNIR,Cheddar Peyniri,30,gr,Cheese burgerlerde
+CHEDDAR,PEYNIR,Cheddar Peyniri,30,gr,Alternatif kelime
+MUSHROOM,SEBZE,Mantar,20,gr,Mushroom burgerlerde (trüflü mayonezle beraber)
+FUME,EKSTRA,Füme Et,13,gr,Smoky burgerlerde ek füme (EKSTRA FUME varsa)
+,,,,,,
+# EKMEK,,,,,,
+BURGER,EKMEK,Ekmek,1,adet,Her burgerde 1 ekmek (DOUBLE/IKILI/UCLU hariç)
+DOUBLE,EKMEK,Ekmek,1,adet,Double burgerlerde de 1 ekmek (2 et ama 1 ekmek)
+IKILI,EKMEK,Ekmek,2,adet,İkili menülerde 2 ekmek
+2 LI,EKMEK,Ekmek,2,adet,Alternatif yazım (2 Lİ / 2 LI)
+UCLU,EKMEK,Ekmek,3,adet,Üçlü menülerde 3 ekmek
+3 LU,EKMEK,Ekmek,3,adet,Alternatif yazım
+3 LÜ,EKMEK,Ekmek,3,adet,Türkçe I/İ farkı
+,,,,,,
+# APERATİFLER,,,,,,
+SOGAN HALKA,APERATIF,Soğan Halkası,14,gr,1 adet = 14gr (adet çarpı 14 = toplam gr)
+STICK PEYNIR,APERATIF,Stick Peynir,1,adet,Adet bazlı
+NUGGET,APERATIF,Nugget,1,adet,Adet bazlı
+PATATES,APERATIF,Patates,130,gr,1 porsiyon patates
+DOUBLE PATATES,APERATIF,Patates,260,gr,2 porsiyon patates
+,,,,,,
+# RAMAZAN MENÜ EKSTRAları,,,,,,
+RAMAZAN,RAMAZAN_EXTRA,Su,1,adet,Ramazan menülerinde su var
+RAMAZAN,RAMAZAN_EXTRA,Kutu İçecek,1,adet,Ramazan menülerinde kutu içecek var
+RAMAZAN JOKE,ET,Joker Et (85gr),85,gr,Ramazan menülerde et (PAKET RAMAZAN JOKE)
+RAMAZAN ETLI,ET,Joker Et (85gr),85,gr,Ramazan Etli Menü
+RAMAZAN CORBALI,TAVUK,Tenders (160gr),160,gr,Ramazan Çorbalı Tavuk
+RAMAZAN TAVUKLU,TAVUK,Tenders (160gr),160,gr,Ramazan Tavuklu Menü
+,,,,,,
+# DİĞER,,,,,,
+GOLDEN,OZEL,Ekmek,1,adet,Golden Burger sadece ekmek (et yok)
+MAKARNA,OZEL,Makarna,1,adet,Tok Eden Menü
+GURME,OZEL,Joker Et (85gr),170,gr,Gurme İkili = 2x85gr Joker Smoky

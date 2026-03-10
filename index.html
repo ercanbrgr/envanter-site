@@ -924,6 +924,81 @@ async function faturaFotoOku(input){
 }
 let satisAnalizSonucu={};let lastSarfOzeti={items:[],tarih:'',tumBurger:0};
 let satisRaporTarih=null;
+// REÇETE ANAHTAR KELİME SİSTEMİ (a=anahtar,k=kategori,m=malzeme,n=miktar,b=birim)
+const RECETE_ANAHTAR=[
+{a:'JOKER',k:'ET',m:'Joker Et (85gr)',n:85,b:'gr'},
+{a:'SUPER',k:'ET',m:'Super Et (120gr)',n:120,b:'gr'},
+{a:'SUPPER',k:'ET',m:'Super Et (120gr)',n:120,b:'gr'},
+{a:'TASTY',k:'ET',m:'Tasty Et (150gr)',n:150,b:'gr'},
+{a:'SPECIAL',k:'ET',m:'Special Et (150gr)',n:150,b:'gr'},
+{a:'MINI ET',k:'ET',m:'Mini Et (50gr)',n:50,b:'gr'},
+{a:'CHICKEN BURGER',k:'TAVUK',m:'Tavuk Burger (120gr)',n:120,b:'gr'},
+{a:'CHICKEN TENDERS',k:'TAVUK',m:'Tenders (160gr)',n:160,b:'gr'},
+{a:'TENDERS',k:'TAVUK',m:'Tenders (160gr)',n:160,b:'gr'},
+{a:'CHEDDAR CHICKEN',k:'TAVUK',m:'Tavuk Burger (120gr)',n:120,b:'gr'},
+{a:'MINI TAVUK',k:'TAVUK',m:'Mini Tavuk (65gr)',n:65,b:'gr'},
+{a:'CITIR TAVUK',k:'TAVUK',m:'Çıtır Tavuk (160gr)',n:160,b:'gr'},
+{a:'TAVUK PARCASI',k:'TAVUK_ADET',m:'Tavuk Parçası',n:6,b:'adet'},
+{a:'RED ZONE',k:'TAVUK',m:'Tavuk Burger (120gr)',n:120,b:'gr'},
+{a:'RED ZONE',k:'SOS',m:'Red Zone Sos',n:30,b:'gr'},
+{a:'BURGER',k:'SOS',m:'Burger Sos',n:30,b:'gr'},
+{a:'RANCH',k:'SOS',m:'Ranch Sos',n:30,b:'gr'},
+{a:'ACI',k:'SOS',m:'Acı Sos',n:40,b:'gr'},
+{a:'ALEV',k:'SOS',m:'Acı Sos',n:40,b:'gr'},
+{a:'MUSHROOM',k:'SOS',m:'Trüflü Mayonez',n:20,b:'gr'},
+{a:'MUSHROOM',k:'SEBZE',m:'Mantar',n:20,b:'gr'},
+{a:'BBQ',k:'SOS',m:'BBQ Sos',n:15,b:'gr'},
+{a:'CHEESE',k:'PEYNIR',m:'Cheddar Peyniri',n:30,b:'gr'},
+{a:'CHEDDAR',k:'PEYNIR',m:'Cheddar Peyniri',n:30,b:'gr'},
+{a:'FUME',k:'EKSTRA',m:'Füme Et',n:13,b:'gr'},
+{a:'SOGAN HALKA',k:'APERATIF',m:'Soğan Halkası',n:14,b:'gr'},
+{a:'STICK PEYNIR',k:'APERATIF',m:'Stick Peynir',n:1,b:'adet'},
+{a:'NUGGET',k:'APERATIF',m:'Nugget',n:1,b:'adet'},
+{a:'DOUBLE PATATES',k:'APERATIF',m:'Patates',n:260,b:'gr'},
+{a:'RAMAZAN JOKE',k:'ET',m:'Joker Et (85gr)',n:85,b:'gr'},
+{a:'RAMAZAN ETLI',k:'ET',m:'Joker Et (85gr)',n:85,b:'gr'},
+{a:'RAMAZAN CORBALI',k:'TAVUK',m:'Tenders (160gr)',n:160,b:'gr'},
+{a:'RAMAZAN TAVUKLU',k:'TAVUK',m:'Tenders (160gr)',n:160,b:'gr'},
+{a:'GURME',k:'OZEL',m:'Joker Et (85gr)',n:170,b:'gr'}
+];
+function urundenMalzemeBul(urunAdi,adet,menuInfo){
+const norm=urunAdi.toUpperCase().trim();
+const malzemeler=[];
+const isDouble=/DOUBLE/.test(norm)&&!/2 ?LI/.test(norm);
+const ikili=/IKILI|2 ?LI/.test(norm);
+const uclu=/UCLU|3 ?LU|3 ?LÜ/.test(norm);
+let etKatsayi=1;
+if(isDouble)etKatsayi=2;
+if(ikili)etKatsayi=2;
+if(uclu)etKatsayi=3;
+let ekSosEklendi=false;
+const secilenSoslar=new Set();
+RECETE_ANAHTAR.forEach(kw=>{
+if(!norm.includes(kw.a))return;
+if(kw.k==='ET'||kw.k==='TAVUK'){
+malzemeler.push({ad:kw.m,miktar:kw.n*adet*etKatsayi,birim:kw.b,kategori:kw.k});
+}else if(kw.k==='SOS'){
+if(kw.a==='BURGER'&&(/MUSHROOM/.test(norm)||/RED ZONE/.test(norm)))return;
+if(secilenSoslar.has(kw.m))return;
+secilenSoslar.add(kw.m);
+malzemeler.push({ad:kw.m,miktar:kw.n*adet*etKatsayi,birim:kw.b,kategori:kw.k});
+ekSosEklendi=true;
+}else if(kw.k==='PEYNIR'||kw.k==='SEBZE'||kw.k==='EKSTRA'){
+malzemeler.push({ad:kw.m,miktar:kw.n*adet*etKatsayi,birim:kw.b,kategori:kw.k});
+}else if(kw.k==='APERATIF'||kw.k==='OZEL'){
+malzemeler.push({ad:kw.m,miktar:kw.n*adet,birim:kw.b,kategori:kw.k});
+}
+});
+if(malzemeler.length>0&&!/GOLDEN/.test(norm)){
+const ekBc=ikili?2:uclu?3:1;
+malzemeler.push({ad:'Ekmek',miktar:ekBc*adet,birim:'adet',kategori:'EKMEK'});
+}
+if(menuInfo.pat>0)malzemeler.push({ad:'Patates',miktar:130*menuInfo.pat*adet,birim:'gr',kategori:'PATATES'});
+if(menuInfo.kutu>0)malzemeler.push({ad:'Kutu İçecek',miktar:menuInfo.kutu*adet,birim:'adet',kategori:'İÇECEK'});
+if(menuInfo.su>0)malzemeler.push({ad:'Su',miktar:menuInfo.su*adet,birim:'adet',kategori:'İÇECEK'});
+if(menuInfo.litre>0)malzemeler.push({ad:'1 Litre İçecek',miktar:menuInfo.litre*adet,birim:'adet',kategori:'İÇECEK'});
+return malzemeler;
+}
 function openSatisModal(){document.getElementById('satis-modal').classList.add('show');document.getElementById('analiz-sonuc').innerHTML='';document.getElementById('satis-text').value='';satisAnalizSonucu={};satisRaporTarih=null;const secDiv=document.getElementById('satis-sube-sec');const secSel=document.getElementById('satis-sube-id');if(currentRole==='admin'||currentRole==='superadmin'){secDiv.style.display='';secSel.innerHTML='<option value="">-- Şube Seç --</option>';(adminData.profiller||[]).filter(p=>p.rol!=='admin'&&p.rol!=='superadmin').forEach(p=>{secSel.innerHTML+=`<option value="${p.user_id}">${p.sube_adi}</option>`;});}else{secDiv.style.display='none';}}
 function closeSatisModal(){document.getElementById('satis-modal').classList.remove('show');}
 function parseSatisLines(text){const items=[];let cat='';text.split('\n').forEach(line=>{if(/^\s*\*/.test(line)){cat=line.replace(/[* ]/g,'').toUpperCase();return;}const m=line.match(/^(.+?)\s{2,}(\d+)/);if(m){const adet=parseInt(m[2]);items.push({ad:m[1].trim().toUpperCase(),adet,kat:cat});}});return items;}
@@ -950,10 +1025,38 @@ else if(/GOLDEN/.test(ad)){add(16,adet*mb.bc,'Adet');tumBurger+=adet*mb.bc;if(mb
 else if(/CITIR|ÇITIR/.test(ad)){add(11,adet*160/1000);return;}if(bSira>=0){const etAdet=isDouble?2:1;add(bSira,adet*mb.bc*etAdet*bGr/1000);add(isMiniEkmek?17:16,adet*mb.bc,'Adet');if(!isTavuk)etBurger+=adet*mb.bc;tumBurger+=adet*mb.bc;if(mb.pat>0)add(8,adet*mb.pat*130/1000);if(mb.kutu>0)add(18,adet*mb.kutu,'Adet');if(mb.su>0)add(21,adet*mb.su,'Adet');if(mb.litre>0)add(20,adet*mb.litre,'Adet');const isSmoky=/SMOKY/.test(ad)||mb.smoky;const isJunior=/JUNIOR|MINI ET/.test(ad);const isRedZone=/RED ZONE/.test(ad);const isAlev=/ALEV/.test(ad);const isChickenSos=/CHICKEN|RAMAZAN CORBALI|RAMAZAN TAVUKLU/.test(ad);const isMushroom=/MUSHROOM|MANTAR/.test(ad);if(isSmoky){smokyBurger+=adet*mb.bc;bbqSosBurger+=adet*mb.bc;}if(isSmoky||isJunior||isRedZone)noYesillikBurger+=adet*mb.bc;if(!isSmoky&&!isAlev&&!isChickenSos&&!isMushroom)burgerSosBurger+=adet*mb.bc;if(!isSmoky&&!isRedZone)tursuBurger+=adet*mb.bc;if(/CHEESE|CHEDDAR|DOUBLE|SPECIAL|PEYNIR|ALEV|MUSHROOM|MANTAR/.test(ad)&&!isSmoky&&!/RED ZONE|TENDERS|JUNIOR|MINI TAVUK/.test(ad))cheeseBurger+=adet*mb.bc;if(isAlev)alevBurger+=adet*mb.bc;if(/MUSHROOM|MANTAR/.test(ad))mushroomBurger+=adet*mb.bc;if(isChickenSos)chickenSosBurger+=adet*mb.bc;const noKar=/SMOKY|JUNIOR|MINI ET|TENDERS|RED ZONE|CHICKEN|CHEDDAR|LEZZET.*TAVUK|RAMAZAN CORBALI/.test(ad)||isTavuk;if(!noKar)karBurger+=adet*mb.bc;return;}if(/PATATES/.test(ad)){const grAdet=/DOUBLE/.test(ad)?260:130;add(8,adet*grAdet/1000);}else if(/MIX|MİX/.test(ad)){add(8,r(adet*130/1000));add(10,r(adet*28/1000));add(12,r(adet*44/1000));add(11,r(adet*40/1000));}else if(/NUGGET/.test(ad))add(9,extractPieces(ad)*adet*24/1000);else if(/SOGAN|SOĞAN|ONION/.test(ad))add(10,extractPieces(ad)*adet*14/1000);else if(/STICK/.test(ad))add(12,r(extractPieces(ad)*adet*22/1000));else if(/SODA|MEYVELI SODA|MADEN/.test(ad))add(19,adet,'Adet');else if(/1 ?LT/.test(ad))add(20,adet,'Adet');else if(/^SU$/.test(ad.trim()))add(21,adet,'Adet');else if(/COLA|ZERO|FUSE|ICE|AYRAN|MEYVE|SPRITE|CAPPY|LIMONATA|SISE|ŞİŞE|GAZO|KUTU|FANTA/.test(ad)&&!/SODA|1 ?LT/.test(ad))add(18,adet,'Adet');});if(etBurger>0)add(13,r(karBurger*20/1000));if(smokyBurger>0)add(14,r(smokyBurger*3*13/1000));
 // Ekmek direkt ürün parse'ından hesaplandı (totals[16]=80gr, totals[17]=mini)
 satisAnalizSonucu=totals;lastSarfOzeti={items:[],tarih:satisRaporTarih||new Date().toISOString().slice(0,10),tumBurger};const siraNamMap={};appData.products.forEach((p,idx)=>{siraNamMap[idx]=p;});const tarihLabel=satisRaporTarih?`<span style="background:#eafaf1;color:#27ae60;padding:3px 10px;border-radius:8px;font-weight:700">📅 ${satisRaporTarih}</span>`:`<span style="background:#fff3cd;color:#856404;padding:3px 10px;border-radius:8px;font-weight:700">⚠️ Tarih bulunamadı — bugün kullanılacak</span>`;let html=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">${tarihLabel}<span style="font-size:11px;color:#999">${lines.length} satır • ${tumBurger} burger</span></div><div style="border:1px solid #eee;border-radius:10px;overflow:hidden;margin-bottom:10px">`;let hasAny=false;Object.entries(totals).forEach(([sira,{val,birim}])=>{const p=siraNamMap[parseInt(sira)];if(!p||!val)return;const isGr=birim==='Kg'&&val<1;const dispVal=isGr?Math.round(r(val*1000)):birim==='Kg'?r(val).toFixed(3):val;const dispUnit=isGr?'gr':birim;const inputType=isGr?'number':'text';const inputStep=isGr?'step="1"':'';html+=`<div style="display:flex;align-items:center;padding:9px 12px;border-bottom:1px solid #f5f5f5;gap:10px"><span style="flex:1;font-size:13px;font-weight:600;color:#333">${p.name}</span><input type="${inputType}" ${inputStep} id="srv-${sira}" data-birim="${dispUnit}" value="${dispVal}" style="width:80px;padding:6px 8px;border:2px solid #eee;border-radius:6px;text-align:center;font-size:13px;font-weight:700;outline:none" onfocus="this.style.borderColor='#e85d04'" onblur="this.style.borderColor='#eee'"><span style="font-size:11px;color:#aaa;min-width:28px">${dispUnit}</span></div>`;hasAny=true;});html+=`</div>`;if(hasAny){html+=`<div style="font-size:11px;color:#aaa;margin-bottom:8px">Değerleri kontrol edip onaylayın — her ürüne yeni giriş açılır</div><button onclick="uygulaRapor()" style="width:100%;padding:13px;background:#27ae60;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer">✅ Kaydet ve Girişleri Oluştur</button>`;}else{html+=`<div style="text-align:center;padding:16px;color:#aaa;font-size:13px">Eşleşen ürün bulunamadı.</div>`;}
-// YENİ: Supabase'den reçete oku ve sarf hesapla
+// YENİ: ANAHTAR KELİME BAZLI SARF HESAPLAMA
 const sarfItems=[];const fmtK=(v)=>{if(v>=1){return r(v).toFixed(3)+' Kg';}else{const gr=Math.round(r(v*1000));return gr+' gr';}};
-const kategoriBelirle=(malzeme)=>{const m=malzeme.toUpperCase();if(/ET\(/.test(m)||/ET \(/.test(m)||/FÜME|FUME/.test(m))return'ET';if(/EKMEK/.test(m))return'EKMEK';if(/CHEDDAR|PEYNIR/.test(m))return'PEYNİR';if(/SOS/.test(m))return'SOSLAR';if(/YEŞİL|MARUL|DOMATES|TURŞU|SOĞAN|MANTAR|LAHANA/.test(m))return'SEBZE';if(/PATATES/.test(m))return'PATATES';if(/TAVUK|CHICKEN/.test(m))return'TAVUK';if(/SU$/.test(m)||/SU /.test(m)||m==='SU')return'İÇECEK';if(/KUTU|LITRE|ICECEK|İÇECEK/.test(m))return'İÇECEK';return'DİĞER';};
-const tanınmayanUrunler=[];try{const{data:receteler,error}=await sb.from('urun_recete').select('*').eq('aktif',true);console.log('📋 Reçete sorgusu:',receteler?.length||0,'kayıt');if(error){console.warn('Reçete sorgusu hatası:',error.message);toast('⚠️ Reçete veritabanına ulaşılamadı, eski hesaplama kullanılıyor',3000);}else if(receteler&&receteler.length>0){const malzemeMap={};const productSales={};const menuExtras={patates:0,kutu:0,su:0,litre:0};lines.forEach(item=>{const{ad,adet}=item;if(/^EKSTRA|^EXTRA|^EK TURSU|^INDIRIM|^PLATFORM/.test(ad))return;const mb=menuBilgi(item);const productQty=adet*mb.bc;if(productQty>0){const normalizedAd=ad.toUpperCase().trim();productSales[normalizedAd]=(productSales[normalizedAd]||0)+productQty;}menuExtras.patates+=adet*(mb.pat||0);menuExtras.kutu+=adet*(mb.kutu||0);menuExtras.su+=adet*(mb.su||0);menuExtras.litre+=adet*(mb.litre||0);});console.log('🔍 Ürün satışları:',Object.keys(productSales).length,'ürün');console.log('🍟 Menü ekstraları:',menuExtras);for(const[productAd,qty]of Object.entries(productSales)){const matchingRecipes=receteler.filter(r=>productAd.includes(r.urun_adi.toUpperCase()));if(matchingRecipes.length>0){console.log(`✅ ${productAd} → ${matchingRecipes.length} reçete`);}else{console.warn(`❌ ${productAd} → reçete bulunamadı`);tanınmayanUrunler.push({ad:productAd,adet:qty});}matchingRecipes.forEach(rec=>{const key=rec.malzeme_adi;if(!malzemeMap[key])malzemeMap[key]={totalKg:0,count:0,grams:[],birim:rec.birim||'gr'};const addVal=rec.birim==='gr'?rec.miktar*qty/1000:rec.miktar*qty;malzemeMap[key].totalKg+=addVal;malzemeMap[key].count+=qty;if(rec.birim==='gr')malzemeMap[key].grams.push(rec.miktar);});}if(menuExtras.patates>0){const key='Patates';if(!malzemeMap[key])malzemeMap[key]={totalKg:0,count:0,grams:[],birim:'gr'};malzemeMap[key].totalKg+=menuExtras.patates*130/1000;malzemeMap[key].count+=menuExtras.patates;malzemeMap[key].grams.push(130);}if(menuExtras.kutu>0){const key='Kutu İçecek';if(!malzemeMap[key])malzemeMap[key]={totalKg:0,count:0,grams:[],birim:'adet'};malzemeMap[key].totalKg+=menuExtras.kutu;malzemeMap[key].count+=menuExtras.kutu;}if(menuExtras.su>0){const key='Su';if(!malzemeMap[key])malzemeMap[key]={totalKg:0,count:0,grams:[],birim:'adet'};malzemeMap[key].totalKg+=menuExtras.su;malzemeMap[key].count+=menuExtras.su;}if(menuExtras.litre>0){const key='1 Litre İçecek';if(!malzemeMap[key])malzemeMap[key]={totalKg:0,count:0,grams:[],birim:'adet'};malzemeMap[key].totalKg+=menuExtras.litre;malzemeMap[key].count+=menuExtras.litre;}for(const[malzeme,data]of Object.entries(malzemeMap)){if(data.totalKg>0){const avgGram=data.grams.length>0?Math.round(data.grams.reduce((a,b)=>a+b,0)/data.grams.length):0;const displayVal=data.birim==='adet'?Math.round(data.totalKg)+' adet':fmtK(data.totalKg);sarfItems.push({ad:malzeme,val:displayVal,count:data.count,kategori:kategoriBelirle(malzeme),birimGram:avgGram});}}}console.log('📦 Sarf hesaplandı:',sarfItems.length,'malzeme');if(tanınmayanUrunler.length>0)console.warn('⚠️ Tanınmayan ürünler:',tanınmayanUrunler.length);}catch(e){console.warn('Sarf hesaplama hatası:',e);toast('⚠️ Sarf hesaplaması yapılamadı',3000);}
+const tanınmayanUrunler=[];
+const malzemeMap={};
+lines.forEach(item=>{
+const{ad,adet}=item;
+if(/^EKSTRA|^EXTRA|^EK TURSU|^INDIRIM|^PLATFORM/.test(ad))return;
+const mb=menuBilgi(item);
+const malzemeler=urundenMalzemeBul(ad,adet,mb);
+if(malzemeler.length===0){
+tanınmayanUrunler.push({ad,adet});
+console.warn(`❌ ${ad} → anahtar kelime bulunamadı`);
+}else{
+console.log(`✅ ${ad} → ${malzemeler.length} malzeme`);
+}
+malzemeler.forEach(m=>{
+const key=m.ad;
+if(!malzemeMap[key])malzemeMap[key]={total:0,count:0,grams:[],birim:m.birim,kategori:m.kategori};
+const addVal=m.birim==='gr'?m.miktar:m.miktar;
+malzemeMap[key].total+=addVal;
+if(m.birim==='gr')malzemeMap[key].grams.push(m.miktar/adet);
+});
+});
+for(const[malzeme,data]of Object.entries(malzemeMap)){
+if(data.total>0){
+const avgGram=data.grams.length>0?Math.round(data.grams.reduce((a,b)=>a+b,0)/data.grams.length):0;
+const displayVal=data.birim==='adet'?Math.round(data.total)+' adet':(data.birim==='gr'?fmtK(data.total/1000):data.total);
+sarfItems.push({ad:malzeme,val:displayVal,count:data.total,kategori:data.kategori||'DİĞER',birimGram:avgGram});
+}
+}
+console.log('📦 Sarf hesaplandı:',sarfItems.length,'malzeme');
+if(tanınmayanUrunler.length>0)console.warn('⚠️ Tanınmayan ürünler:',tanınmayanUrunler.length);
 if(sarfItems.length>0){const grouped={};sarfItems.forEach(s=>{if(!grouped[s.kategori])grouped[s.kategori]=[];grouped[s.kategori].push(s);});const katSira=['ET','TAVUK','EKMEK','PATATES','PEYNİR','SOSLAR','SEBZE','İÇECEK','DİĞER'];html+=`<div style="margin-top:12px;border:2px solid #fde68a;border-radius:12px;overflow:hidden"><div style="background:#fef9c3;padding:10px 14px;font-weight:700;font-size:13px;color:#78350f;display:flex;align-items:center;gap:6px">📦 SARF ÖZETİ <span style="font-size:11px;font-weight:400;color:#a16207">(reçeteye göre tahmini tüketim)</span></div><div style="background:#fffbeb">`;katSira.forEach(kat=>{if(!grouped[kat]||!grouped[kat].length)return;html+=`<div style="background:#fbbf24;color:#78350f;padding:6px 14px;font-weight:800;font-size:11px;margin-top:1px;letter-spacing:0.5px">📦 ${kat}</div>`;grouped[kat].forEach(s=>{const isEtOrTavuk=(kat==='ET'||kat==='TAVUK');const adetGoster=isEtOrTavuk&&s.birimGram>0;const displayVal=adetGoster?`${s.count} adet`:s.val;const displayDetay=adetGoster?`(${s.birimGram} gr/adet, toplam ${s.val})`:(s.birimGram>0?`${s.count} porsiyon, ${s.birimGram}gr/porsiyon`:`${s.count} porsiyon`);html+=`<div style="display:flex;justify-content:space-between;padding:8px 14px 8px 24px;border-top:1px solid #fef3c7;font-size:13px"><span style="color:#555;font-weight:600">${s.ad}</span><span style="font-weight:800;color:#d97706">${displayVal} <span style="color:#aaa;font-size:11px">${displayDetay}</span></span></div>`;});});html+=`</div></div>`;}if(tanınmayanUrunler.length>0){html+=`<div style="margin-top:12px;border:2px solid #fca5a5;border-radius:12px;overflow:hidden"><div style="background:#fee2e2;padding:10px 14px;font-weight:700;font-size:13px;color:#991b1b;display:flex;align-items:center;gap:6px">⚠️ TANINMAYAN ÜRÜNLER <span style="font-size:11px;font-weight:400;color:#dc2626">(reçete bulunamadı — lütfen ekleyin)</span></div><div style="background:#fef2f2">`;tanınmayanUrunler.forEach(u=>{html+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 14px;border-top:1px solid #fecaca;font-size:13px"><span style="color:#991b1b;font-weight:600">• ${u.ad}</span><span style="font-weight:700;color:#dc2626">${u.adet} adet</span></div>`;});html+=`</div></div>`;}
 lastSarfOzeti={items:sarfItems,tarih:satisRaporTarih||new Date().toISOString().slice(0,10),tumBurger};const sarfBtn=document.getElementById('sarf-ozeti-btn');if(sarfBtn&&sarfItems.length>0)sarfBtn.style.display='';if(sarfItems.length>0){const sarfTarih=satisRaporTarih||new Date().toISOString().slice(0,10);const secilenSubeId=document.getElementById('satis-sube-id')?.value||currentUser.id;const sarfKey='sarf_'+sarfTarih+'_'+secilenSubeId;localStorage.setItem(sarfKey,JSON.stringify({items:sarfItems,tum_burger:tumBurger,tarih:sarfTarih}));try{sb.from('sarf_ozeti').upsert({user_id:currentUser.id,sube_user_id:secilenSubeId,tarih:sarfTarih,items:sarfItems,tum_burger:tumBurger},{onConflict:'user_id,sube_user_id,tarih'}).then(({error})=>{if(error)console.warn('Sarf kayit hatasi:',error.message);});}catch(e){}};
 document.getElementById('analiz-sonuc').innerHTML=html;}

@@ -1023,7 +1023,8 @@ malzemeler.push({ad:kw.m,miktar:kw.n*adet*etKatsayi,birim:kw.b,kategori:kw.k});
 malzemeler.push({ad:kw.m,miktar:kw.n*adet,birim:kw.b,kategori:kw.k});
 }
 });
-if(malzemeler.length>0&&!/GOLDEN|MIX|SISE|ŞISE|KUTU|SU|SODA|AYRAN|LIMONATA|GAZO|ULUDAG|PATATES KIZART|FUSE TEA|CAPPY|SPRITE|COCA|FANTA/.test(norm)){
+const burgerDegil=/^(MIX|PATATES|SOGAN|STICK|NUGGET|CITIR TAVUK TABAGI|GOLDEN BURGER$)/.test(norm)||/^(SU|AYRAN|SODA|LIMONATA|GAZO|ULUDAG)$/.test(norm)||/(SISE|ŞISE|KUTU|FUSE TEA|CAPPY|SPRITE|COCA|FANTA|1LT|LITRE)(?!\s*BURGER)/.test(norm);
+if(malzemeler.length>0&&!burgerDegil){
 const ekBc=ikili?2:uclu?3:1;
 malzemeler.push({ad:'Ekmek',miktar:ekBc*adet,birim:'adet',kategori:'EKMEK'});
 }
@@ -1076,17 +1077,22 @@ console.log(`✅ ${ad} → ${malzemeler.length} malzeme`);
 }
 malzemeler.forEach(m=>{
 const key=m.ad;
-if(!malzemeMap[key])malzemeMap[key]={total:0,count:0,grams:[],birim:m.birim,kategori:m.kategori};
+if(!malzemeMap[key])malzemeMap[key]={total:0,count:0,grams:[],birim:m.birim,kategori:m.kategori,baseGram:0};
 const addVal=m.birim==='gr'?m.miktar:m.miktar;
 malzemeMap[key].total+=addVal;
-if(m.birim==='gr')malzemeMap[key].grams.push(m.miktar/adet);
+if(m.birim==='gr'){
+const grMatch=m.ad.match(/\((\d+)gr\)/);
+if(grMatch)malzemeMap[key].baseGram=parseInt(grMatch[1]);
+}
 });
 });
 for(const[malzeme,data]of Object.entries(malzemeMap)){
 if(data.total>0){
-const avgGram=data.grams.length>0?Math.round(data.grams.reduce((a,b)=>a+b,0)/data.grams.length):0;
-const displayVal=data.birim==='adet'?Math.round(data.total)+' adet':(data.birim==='gr'?fmtK(data.total/1000):data.total);
-sarfItems.push({ad:malzeme,val:displayVal,count:data.total,kategori:data.kategori||'DİĞER',birimGram:avgGram});
+const birimGram=data.baseGram||0;
+const totalKg=data.birim==='gr'?(data.total/1000):data.total;
+const displayVal=data.birim==='adet'?Math.round(data.total)+' adet':fmtK(totalKg);
+const adetCount=data.birim==='gr'&&birimGram>0?Math.round(data.total/birimGram):Math.round(data.total);
+sarfItems.push({ad:malzeme,val:displayVal,count:adetCount,kategori:data.kategori||'DİĞER',birimGram});
 }
 }
 console.log('📦 Sarf hesaplandı:',sarfItems.length,'malzeme');

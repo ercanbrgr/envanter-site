@@ -1003,14 +1003,14 @@ const RECETE_ANAHTAR=[
 {a:'RAMAZAN ETLI',k:'ET',m:'Joker Et (85gr)',n:85,b:'gr'},
 {a:'RAMAZAN CORBALI',k:'TAVUK',m:'Tenders (165gr)',n:165,b:'gr'},
 {a:'RAMAZAN TAVUKLU',k:'TAVUK',m:'Tenders (165gr)',n:165,b:'gr'},
-{a:'GURME',k:'OZEL',m:'Joker Et (85gr)',n:170,b:'gr'},
-{a:'SMASH TRIPLE',k:'ET',m:'Smash Et (65gr)',n:195,b:'gr'},
-{a:'SMASH DOUBLE STEAK',k:'ET',m:'Smash Et (65gr)',n:130,b:'gr'},
-{a:'SMASH DOUBLE BURGER',k:'ET',m:'Smash Et (65gr)',n:130,b:'gr'},
-{a:'SMASH DOUBLE',k:'ET',m:'Smash Et (65gr)',n:130,b:'gr'},
-{a:'SMASH STEAK',k:'ET',m:'Smash Et (65gr)',n:65,b:'gr'},
-{a:'SMASH BURGER',k:'ET',m:'Smash Et (65gr)',n:65,b:'gr'},
-{a:'SMASH',k:'ET',m:'Smash Et (65gr)',n:65,b:'gr'},
+{a:'GURME',k:'OZEL',m:'Joker Et (85gr)',n:170,b:'gr',base:85},
+{a:'SMASH TRIPLE',k:'ET',m:'Smash Et (65gr)',n:195,b:'gr',base:65},
+{a:'SMASH DOUBLE STEAK',k:'ET',m:'Smash Et (65gr)',n:130,b:'gr',base:65},
+{a:'SMASH DOUBLE BURGER',k:'ET',m:'Smash Et (65gr)',n:130,b:'gr',base:65},
+{a:'SMASH DOUBLE',k:'ET',m:'Smash Et (65gr)',n:130,b:'gr',base:65},
+{a:'SMASH STEAK',k:'ET',m:'Smash Et (65gr)',n:65,b:'gr',base:65},
+{a:'SMASH BURGER',k:'ET',m:'Smash Et (65gr)',n:65,b:'gr',base:65},
+{a:'SMASH',k:'ET',m:'Smash Et (65gr)',n:65,b:'gr',base:65},
 {a:'6 LI STICK',k:'APERATIF',m:'Stick Peynir',n:22,b:'gr'},
 {a:'3 LU STICK',k:'APERATIF',m:'Stick Peynir',n:22,b:'gr'},
 {a:'3 LI STICK',k:'APERATIF',m:'Stick Peynir',n:22,b:'gr'},
@@ -1034,17 +1034,17 @@ const secilenSoslar=new Set();
 RECETE_ANAHTAR.forEach(kw=>{
 if(!norm.includes(kw.a))return;
 if(kw.k==='ET'||kw.k==='TAVUK'){
-malzemeler.push({ad:kw.m,miktar:kw.n*adet*etKatsayi,birim:kw.b,kategori:kw.k,baseGram:kw.n});
+malzemeler.push({ad:kw.m,miktar:kw.n*adet*etKatsayi,birim:kw.b,kategori:kw.k,baseGram:kw.base||kw.n});
 }else if(kw.k==='SOS'){
 if(kw.a==='BURGER'&&(/MUSHROOM/.test(norm)||/RED ZONE/.test(norm)))return;
 if(secilenSoslar.has(kw.m))return;
 secilenSoslar.add(kw.m);
-malzemeler.push({ad:kw.m,miktar:kw.n*adet,birim:kw.b,kategori:kw.k,baseGram:kw.n});
+malzemeler.push({ad:kw.m,miktar:kw.n*adet,birim:kw.b,kategori:kw.k,baseGram:kw.base||kw.n});
 ekSosEklendi=true;
 }else if(kw.k==='PEYNIR'||kw.k==='SEBZE'||kw.k==='EKSTRA'){
-malzemeler.push({ad:kw.m,miktar:kw.n*adet,birim:kw.b,kategori:kw.k,baseGram:kw.n});
+malzemeler.push({ad:kw.m,miktar:kw.n*adet,birim:kw.b,kategori:kw.k,baseGram:kw.base||kw.n});
 }else if(kw.k==='APERATIF'||kw.k==='OZEL'||kw.k==='MIX'||kw.k==='ICECEK'){
-malzemeler.push({ad:kw.m,miktar:kw.n*adet,birim:kw.b,kategori:kw.k,baseGram:kw.n});
+malzemeler.push({ad:kw.m,miktar:kw.n*adet,birim:kw.b,kategori:kw.k,baseGram:kw.base||kw.n});
 }
 });
 const burgerVarMi=malzemeler.some(m=>m.kategori==='ET'||m.kategori==='TAVUK')||/GOLDEN/.test(norm);

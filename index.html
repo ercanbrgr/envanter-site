@@ -431,7 +431,8 @@ let currentUser=null,isAdmin=false,isSuperAdmin=false,appData={products:[]},curr
 const DEFAULT_PRODUCTS=[
   {name:'Mini Et Burger',birim:'Kg'},{name:'Joker Burger',birim:'Kg'},
   {name:'Super Burger',birim:'Kg'},{name:'Tasty Burger',birim:'Kg'},
-  {name:'Special',birim:'Kg'},{name:'Mini Tavuk',birim:'Kg'},
+  {name:'Special',birim:'Kg'},{name:'Smash Et',birim:'Kg'},
+  {name:'Mini Tavuk',birim:'Kg'},
   {name:'Tavuk Burger',birim:'Kg'},{name:'Tenders',birim:'Kg'},
   {name:'Patates',birim:'Kg'},{name:'Nugget',birim:'Kg'},
   {name:'Soğan Halkası',birim:'Kg'},{name:'Çıtır Tavuk',birim:'Kg'},
@@ -1002,12 +1003,12 @@ const RECETE_ANAHTAR=[
 {a:'RAMAZAN CORBALI',k:'TAVUK',m:'Tenders (165gr)',n:165,b:'gr'},
 {a:'RAMAZAN TAVUKLU',k:'TAVUK',m:'Tenders (165gr)',n:165,b:'gr'},
 {a:'GURME',k:'OZEL',m:'Joker Et (85gr)',n:170,b:'gr'},
-{a:'SMASH DOUBLE STEAK',k:'ET',m:'Tasty Et (150gr)',n:300,b:'gr'},
-{a:'SMASH DOUBLE BURGER',k:'ET',m:'Joker Et (85gr)',n:170,b:'gr'},
-{a:'SMASH DOUBLE',k:'ET',m:'Joker Et (85gr)',n:170,b:'gr'},
-{a:'SMASH STEAK',k:'ET',m:'Tasty Et (150gr)',n:150,b:'gr'},
-{a:'SMASH BURGER',k:'ET',m:'Joker Et (85gr)',n:85,b:'gr'},
-{a:'SMASH',k:'ET',m:'Joker Et (85gr)',n:85,b:'gr'},
+{a:'SMASH DOUBLE STEAK',k:'ET',m:'Smash Et (65gr)',n:130,b:'gr'},
+{a:'SMASH DOUBLE BURGER',k:'ET',m:'Smash Et (65gr)',n:130,b:'gr'},
+{a:'SMASH DOUBLE',k:'ET',m:'Smash Et (65gr)',n:130,b:'gr'},
+{a:'SMASH STEAK',k:'ET',m:'Smash Et (65gr)',n:65,b:'gr'},
+{a:'SMASH BURGER',k:'ET',m:'Smash Et (65gr)',n:65,b:'gr'},
+{a:'SMASH',k:'ET',m:'Smash Et (65gr)',n:65,b:'gr'},
 {a:'6 LI STICK',k:'APERATIF',m:'Stick Peynir',n:22,b:'gr'},
 {a:'3 LU STICK',k:'APERATIF',m:'Stick Peynir',n:22,b:'gr'},
 {a:'3 LI STICK',k:'APERATIF',m:'Stick Peynir',n:22,b:'gr'},
@@ -1061,7 +1062,7 @@ function parseSatisLines(text){const items=[];let cat='';text.split('\n').forEac
 function parseOzetToplam(text){let toplam=0;const lines=text.split('\n');let ozetBasladi=false;lines.forEach(line=>{if(/Ozet Urun Tip|Özet Ürün Tip/i.test(line)){ozetBasladi=true;return;}if(ozetBasladi){const m=line.match(/:\s*(\d+)/);if(m)toplam+=parseInt(m[1]);}});return toplam;}
 function gunAdiFromTarih(tarih){if(!tarih)return '';const d=new Date(tarih);return ['Paz','Pzt','Sal','Çar','Per','Cum','Cmt'][d.getDay()]||'';}
 function extractPieces(ad){const m=ad.match(/(\d+)'?[LlİiuU]/);return m?parseInt(m[1]):1;}
-function menuBilgi(item){const{ad,kat}=item;if(/GURME.*IKIL|IKIL.*GURME/.test(ad))return{bc:2,pat:2,kutu:2,su:0,litre:0,smoky:true};if(/IKILI/.test(kat)||/2 ?LI/.test(ad))return{bc:2,pat:2,kutu:2,su:0,litre:0};if(/UCLU/.test(kat)||/3 ?LU/.test(ad))return{bc:3,pat:3,kutu:0,su:0,litre:1};if(/DORTLU/.test(kat)||/4 ?LU/.test(ad))return{bc:4,pat:4,kutu:0,su:0,litre:2};if(/PIZZA.*MEN|MEN.*PIZZA/.test(ad))return{bc:0,pat:0,kutu:1,su:0,litre:0};if(/PAKET|RAMAZAN/.test(ad))return{bc:1,pat:1,kutu:1,su:1,litre:0};if(/MENU/.test(kat)||/MEN[UÜ]?$/.test(ad))return{bc:1,pat:1,kutu:1,su:0,litre:0};return{bc:1,pat:0,kutu:0,su:0,litre:0};}
+function menuBilgi(item){const{ad,kat}=item;if(/SMASH/.test(ad))return{bc:1,pat:1,kutu:1,su:0,litre:0};if(/GURME.*IKIL|IKIL.*GURME/.test(ad))return{bc:2,pat:2,kutu:2,su:0,litre:0,smoky:true};if(/IKILI/.test(kat)||/2 ?LI/.test(ad))return{bc:2,pat:2,kutu:2,su:0,litre:0};if(/UCLU/.test(kat)||/3 ?LU/.test(ad))return{bc:3,pat:3,kutu:0,su:0,litre:1};if(/DORTLU/.test(kat)||/4 ?LU/.test(ad))return{bc:4,pat:4,kutu:0,su:0,litre:2};if(/PIZZA.*MEN|MEN.*PIZZA/.test(ad))return{bc:0,pat:0,kutu:1,su:0,litre:0};if(/PAKET|RAMAZAN/.test(ad))return{bc:1,pat:1,kutu:1,su:1,litre:0};if(/MENU/.test(kat)||/MEN[UÜ]?$/.test(ad))return{bc:1,pat:1,kutu:1,su:0,litre:0};return{bc:1,pat:0,kutu:0,su:0,litre:0};}
 function parseTarihFromText(text){const m=text.match(/(\d{1,2})[.\-\/](\d{1,2})[.\-\/](\d{4})/);if(!m)return null;const gun=m[1].padStart(2,'0'),ay=m[2].padStart(2,'0'),yil=m[3];return `${yil}-${ay}-${gun}`;}
 async function analizEt(){const text=document.getElementById('satis-text').value.trim();if(!text){toast('Rapor metnini yapıştırın');return;}satisRaporTarih=parseTarihFromText(text);const lines=parseSatisLines(text);if(!lines.length){document.getElementById('analiz-sonuc').innerHTML='<div style="color:#e74c3c;font-size:13px;padding:10px">Ürün bulunamadı.</div>';return;}const totals={};let etBurger=0,tumBurger=0,smokyBurger=0,karBurger=0,cheeseBurger=0,alevBurger=0,chickenSosBurger=0,bbqSosBurger=0,mushroomBurger=0,noYesillikBurger=0,burgerSosBurger=0,tursuBurger=0;const add=(sira,val,birim='Kg')=>{if(!totals[sira])totals[sira]={val:0,birim};totals[sira].val=r(totals[sira].val+val);totals[sira].birim=birim;};lines.forEach(item=>{const{ad,adet}=item;if(/^INDIRIM|^PLATFORM/.test(ad))return;if(/FUME|FÜME/i.test(ad)&&/^EKSTRA/i.test(ad)){add(14,adet*13/1000);return;}if(/^EKSTRA.*PATATES|^EXTRA.*PATATES/i.test(ad)){add(8,adet*130/1000);return;}if(/^EKSTRA.*KARAMELIZE|^EXTRA.*KARAMELIZE/i.test(ad)){add(13,adet*20/1000);return;}if(/^EKSTRA|^EXTRA|^EK TURSU/.test(ad))return;const mb=menuBilgi(item);const isDouble=/DOUBLE/.test(ad)&&!/2 ?LI/.test(ad);let bSira=-1,bGr=0,isTavuk=false,isMiniEkmek=false;if(/RAMAZAN CORBALI/.test(ad)){bSira=7;bGr=110;isTavuk=true;}
 else if(/RAMAZAN TAVUKLU/.test(ad)){bSira=7;bGr=110;isTavuk=true;}

@@ -953,6 +953,7 @@ const RECETE_ANAHTAR=[
 {a:'TASTY',k:'SEBZE',m:'Yeşillik',n:18,b:'gr'},
 {a:'TASTY',k:'SEBZE',m:'Turşu',n:18,b:'gr'},
 {a:'TASTY',k:'SEBZE',m:'Domates',n:18,b:'gr'},
+{a:'SMOKY',k:'SEBZE',m:'Karamelize Soğan',n:18,b:'gr'},
 {a:'CHICKEN',k:'SEBZE',m:'Yeşillik',n:18,b:'gr'},
 {a:'CHICKEN',k:'SEBZE',m:'Turşu',n:18,b:'gr'},
 {a:'CHICKEN',k:'SEBZE',m:'Domates',n:18,b:'gr'},
@@ -1073,7 +1074,7 @@ malzemeler.push({ad:kw.m,miktar:kw.n*adet,birim:kw.b,kategori:kw.k,baseGram:kw.b
 const burgerVarMi=malzemeler.some(m=>m.kategori==='ET'||m.kategori==='TAVUK')||/GOLDEN/.test(norm);
 if(burgerVarMi){
 const ekBc=ikili?2:uclu?3:1;
-malzemeler.push({ad:'Ekmek',miktar:ekBc*adet,birim:'adet',kategori:'EKMEK',baseGram:1});
+malzemeler.push({ad:'Ekmek',miktar:ekBc*adet,birim:'adet',kategori:'EKMEK',baseGram:80});
 }
 if(menuInfo.pat>0)malzemeler.push({ad:'Patates',miktar:130*menuInfo.pat*adet,birim:'gr',kategori:'PATATES',baseGram:130});
 if(menuInfo.kutu>0)malzemeler.push({ad:'Kutu İçecek',miktar:menuInfo.kutu*adet,birim:'adet',kategori:'İÇECEK',baseGram:1});

@@ -956,19 +956,22 @@ const RECETE_ANAHTAR=[
 {a:'CHICKEN',k:'SEBZE',m:'Yeşillik',n:18,b:'gr'},
 {a:'CHICKEN',k:'SEBZE',m:'Turşu',n:18,b:'gr'},
 {a:'CHICKEN',k:'SEBZE',m:'Domates',n:18,b:'gr'},
+{a:'FIT CHICKEN',k:'TAVUK',m:'Tavuk Burger (120gr)',n:120,b:'gr'},
+{a:'FIT CHICKEN',k:'SEBZE',m:'Yeşillik',n:18,b:'gr'},
+{a:'FIT CHICKEN',k:'SEBZE',m:'Domates',n:20,b:'gr'},
 {a:'TENDERS',k:'SEBZE',m:'Yeşillik',n:18,b:'gr'},
 {a:'TENDERS',k:'SEBZE',m:'Turşu',n:18,b:'gr'},
 {a:'TENDERS',k:'SEBZE',m:'Domates',n:18,b:'gr'},
 {a:'SPECIAL',k:'SEBZE',m:'Yeşillik',n:18,b:'gr'},
 {a:'SPECIAL',k:'SEBZE',m:'Turşu',n:18,b:'gr'},
 {a:'SPECIAL',k:'SEBZE',m:'Domates',n:18,b:'gr'},
-{a:'BURGER',k:'SOS',m:'Burger Sos',n:30,b:'gr'},
+{a:'BURGER',k:'SOS',m:'Burger Sos',n:18,b:'gr'},
 {a:'RANCH',k:'SOS',m:'Ranch Sos',n:30,b:'gr'},
-{a:'ACI',k:'SOS',m:'Acı Sos',n:40,b:'gr'},
-{a:'ALEV',k:'SOS',m:'Acı Sos',n:40,b:'gr'},
-{a:'MUSHROOM',k:'SOS',m:'Trüflü Mayonez',n:20,b:'gr'},
+{a:'ACI',k:'SOS',m:'Acı Sos',n:20,b:'gr'},
+{a:'ALEV',k:'SOS',m:'Acı Sos',n:20,b:'gr'},
+{a:'MUSHROOM',k:'SOS',m:'Trüflü Mayonez',n:18,b:'gr'},
 {a:'MUSHROOM',k:'SEBZE',m:'Mantar',n:20,b:'gr'},
-{a:'BBQ',k:'SOS',m:'BBQ Sos',n:15,b:'gr'},
+{a:'BBQ',k:'SOS',m:'BBQ Sos',n:18,b:'gr'},
 {a:'CHEESE',k:'PEYNIR',m:'Cheddar Peyniri',n:30,b:'gr'},
 {a:'CHEDDAR',k:'PEYNIR',m:'Cheddar Peyniri',n:30,b:'gr'},
 {a:'FUME',k:'EKSTRA',m:'Füme Et',n:13,b:'gr'},
@@ -978,8 +981,8 @@ const RECETE_ANAHTAR=[
 {a:'EKSTRA TURSU',k:'EKSTRA',m:'Turşu',n:15,b:'gr'},
 {a:'EKSTRA PATATES',k:'EKSTRA',m:'Patates',n:130,b:'gr'},
 {a:'EKSTRA PASTIRMA',k:'EKSTRA',m:'Pastırma',n:20,b:'gr'},
-{a:'EKSTRA KARAMELIZE',k:'EKSTRA',m:'Karamelize Soğan',n:20,b:'gr'},
-{a:'EXTRA KARAMELIZE',k:'EKSTRA',m:'Karamelize Soğan',n:20,b:'gr'},
+{a:'EKSTRA KARAMELIZE',k:'EKSTRA',m:'Karamelize Soğan',n:18,b:'gr'},
+{a:'EXTRA KARAMELIZE',k:'EKSTRA',m:'Karamelize Soğan',n:18,b:'gr'},
 {a:'SOGAN HALKA',k:'APERATIF',m:'Soğan Halkası',n:14,b:'gr'},
 {a:'SOĞAN HALKA',k:'APERATIF',m:'Soğan Halkası',n:14,b:'gr'},
 {a:'12 LI SOGAN',k:'APERATIF',m:'Soğan Halkası',n:14,b:'gr'},
@@ -1055,6 +1058,7 @@ if(kw.k==='ET'||kw.k==='TAVUK'){
 malzemeler.push({ad:kw.m,miktar:kw.n*adet*etKatsayi,birim:kw.b,kategori:kw.k,baseGram:kw.base||kw.n});
 }else if(kw.k==='SOS'){
 if(kw.a==='BURGER'&&(/MUSHROOM/.test(norm)||/RED ZONE/.test(norm)))return;
+if(kw.a==='RANCH'&&/FIT CHICKEN/.test(norm))return;
 if(secilenSoslar.has(kw.m))return;
 secilenSoslar.add(kw.m);
 malzemeler.push({ad:kw.m,miktar:kw.n*adet,birim:kw.b,kategori:kw.k,baseGram:kw.base||kw.n});

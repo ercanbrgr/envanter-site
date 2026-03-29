@@ -943,7 +943,25 @@ const RECETE_ANAHTAR=[
 {a:'TAVUK TABAGI',k:'TAVUK',m:'Çıtır Tavuk (160gr)',n:160,b:'gr'},
 {a:'TAVUK PARCASI',k:'TAVUK_ADET',m:'Tavuk Parçası',n:6,b:'adet'},
 {a:'RED ZONE',k:'TAVUK',m:'Tavuk Burger (120gr)',n:120,b:'gr'},
-{a:'RED ZONE',k:'SOS',m:'Red Zone Sos',n:30,b:'gr'},
+{a:'RED ZONE',k:'SEBZE',m:'Kırmızı Lahana',n:60,b:'gr'},
+{a:'JOKER',k:'SEBZE',m:'Yeşillik',n:18,b:'gr'},
+{a:'JOKER',k:'SEBZE',m:'Turşu',n:18,b:'gr'},
+{a:'JOKER',k:'SEBZE',m:'Domates',n:18,b:'gr'},
+{a:'SUPER',k:'SEBZE',m:'Yeşillik',n:18,b:'gr'},
+{a:'SUPER',k:'SEBZE',m:'Turşu',n:18,b:'gr'},
+{a:'SUPER',k:'SEBZE',m:'Domates',n:18,b:'gr'},
+{a:'TASTY',k:'SEBZE',m:'Yeşillik',n:18,b:'gr'},
+{a:'TASTY',k:'SEBZE',m:'Turşu',n:18,b:'gr'},
+{a:'TASTY',k:'SEBZE',m:'Domates',n:18,b:'gr'},
+{a:'CHICKEN',k:'SEBZE',m:'Yeşillik',n:18,b:'gr'},
+{a:'CHICKEN',k:'SEBZE',m:'Turşu',n:18,b:'gr'},
+{a:'CHICKEN',k:'SEBZE',m:'Domates',n:18,b:'gr'},
+{a:'TENDERS',k:'SEBZE',m:'Yeşillik',n:18,b:'gr'},
+{a:'TENDERS',k:'SEBZE',m:'Turşu',n:18,b:'gr'},
+{a:'TENDERS',k:'SEBZE',m:'Domates',n:18,b:'gr'},
+{a:'SPECIAL',k:'SEBZE',m:'Yeşillik',n:18,b:'gr'},
+{a:'SPECIAL',k:'SEBZE',m:'Turşu',n:18,b:'gr'},
+{a:'SPECIAL',k:'SEBZE',m:'Domates',n:18,b:'gr'},
 {a:'BURGER',k:'SOS',m:'Burger Sos',n:30,b:'gr'},
 {a:'RANCH',k:'SOS',m:'Ranch Sos',n:30,b:'gr'},
 {a:'ACI',k:'SOS',m:'Acı Sos',n:40,b:'gr'},
@@ -1042,6 +1060,7 @@ secilenSoslar.add(kw.m);
 malzemeler.push({ad:kw.m,miktar:kw.n*adet,birim:kw.b,kategori:kw.k,baseGram:kw.base||kw.n});
 ekSosEklendi=true;
 }else if(kw.k==='PEYNIR'||kw.k==='SEBZE'||kw.k==='EKSTRA'){
+if(kw.k==='SEBZE'&&(kw.m==='Yeşillik'||kw.m==='Turşu'||kw.m==='Domates')&&(/SMOKY|JUNIOR|MINI ET/.test(norm)))return;
 malzemeler.push({ad:kw.m,miktar:kw.n*adet,birim:kw.b,kategori:kw.k,baseGram:kw.base||kw.n});
 }else if(kw.k==='APERATIF'||kw.k==='OZEL'||kw.k==='MIX'||kw.k==='ICECEK'){
 malzemeler.push({ad:kw.m,miktar:kw.n*adet,birim:kw.b,kategori:kw.k,baseGram:kw.base||kw.n});
